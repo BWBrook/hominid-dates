@@ -1,10 +1,11 @@
 # R/collapse_fragments.R ---------------------------------------------------------
 #' Collapse duplicate fragments into single occurrences
 #'
-#' Identical lat, lon, species, and date are treated as one record.
+#' * `sampling_intensity` = number of specimens (rows) represented by the
+#'   collapsed occurrence; this count includes indeterminates.
 #'
 #' @param tbl Tibble from `read_hominid()`.
-#' @return Deduplicated tibble.
+#' @return Deduplicated tibble with a new `sampling_intensity` column.
 #' @export
 collapse_fragments <- function(tbl) {
 
@@ -13,11 +14,11 @@ collapse_fragments <- function(tbl) {
   tbl |>
     group_by(lat, lon, species, date) |>
     summarise(
-      # retain one exemplar id; retain widest bounds
-      id    = pick(id)[1],
-      upper = max(upper, na.rm = TRUE),
-      lower = min(lower, na.rm = TRUE),
-      .groups = "drop"
+      sampling_intensity = n(),            # how many fragments merged
+      id                 = pick(id)[1],    # exemplar
+      upper              = max(upper, na.rm = TRUE),
+      lower              = min(lower, na.rm = TRUE),
+      .groups            = "drop"
     ) |>
     ungroup()
 }

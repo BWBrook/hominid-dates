@@ -1,6 +1,5 @@
 # _targets.R ----------------------------------------------------------------------
 # Declarative pipeline: flat list of tar_target() calls.
-
 import::from("targets", tar_option_set, tar_target)
 import::from("here", here)
 
@@ -11,6 +10,7 @@ import::here(summarise_freq,     .from = "R/summarise_freq.R")
 import::here(summarise_spans,    .from = "R/summarise_spans.R")
 import::here(calc_overlap,       .from = "R/calc_overlap.R")
 import::here(write_output,       .from = "R/write_outputs.R")
+import::here(filter_indet,       .from = "R/filter_indet.R")
 
 tar_option_set(
   packages = c("dplyr", "tidyr", "here", "readr", "tibble", "purrr"),
@@ -36,15 +36,21 @@ list(
     collapse_fragments(raw_tbl)
   ),
 
-  # 3 summaries ----
+  # 2b drop indeterminates ----
+  tar_target(
+    occ_tbl_no_indet,
+    filter_indet(occ_tbl)
+  ),
+
+  # 3 summaries ----
   tar_target(
     genus_species_freq,
-    summarise_freq(occ_tbl)
+    summarise_freq(occ_tbl_no_indet)
   ),
 
   tar_target(
     temporal_span,
-    summarise_spans(occ_tbl)
+    summarise_spans(occ_tbl_no_indet)
   ),
 
   tar_target(

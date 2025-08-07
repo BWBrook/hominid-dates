@@ -1,7 +1,7 @@
 # bootstrap_env.R
 # Initialise renv, pin package versions, and install any missing packages ----------
 
-if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
+if (!requireNamespace("renv", quietly = TRUE)) install.packages(c("renv","imports","pak"))
 
 import::from("renv", init, install, snapshot, status)
 
