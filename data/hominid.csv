@@ -2,7 +2,7 @@ index,id,country,genus,species,lat,lon,date,upper,lower
 1,KT12_H1,chad,australopithecus,bahrelghazali,16.00583,18.87611,3.58,3.85,3.31
 2,KT12_H2,chad,australopithecus,bahrelghazali,16.00583,18.87611,3.58,3.85,3.31
 3,KT13,chad,australopithecus,indet,15.96917,18.86944,3.25,3.5,3.0
-4,#Ish25,democratic_republic_of_congo,indet,indet,-0.13701,29.60185,2.175,2.35,2.0
+4,Ish25,democratic_republic_of_congo,indet,indet,-0.13701,29.60185,2.175,2.35,2.0
 5,DIK-1-1,ethiopia,australopithecus,afarensis,11.09404,40.6042,3.33,3.35,3.31
 6,DIK-2-1,ethiopia,australopithecus,afarensis,11.08035,40.58212,3.4,3.4,3.4
 7,FJ-1-Hd1,ethiopia,homo,habilis,4.50111,36.33389,1.95,2.0,1.9

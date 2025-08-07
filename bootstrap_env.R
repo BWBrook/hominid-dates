@@ -1,13 +1,13 @@
 # bootstrap_env.R
 # Initialise renv, pin package versions, and install any missing packages ----------
 
-if (!requireNamespace("renv", quietly = TRUE)) install.packages(c("renv","imports","pak"))
+if (!requireNamespace("renv", quietly = TRUE)) install.packages(c("renv","imports"))
 
 import::from("renv", init, install, snapshot, status)
 
 required_pkgs <- c(
   "targets", "import", "here", "readr", "dplyr",
-  "tidyr", "tibble", "purrr"
+  "tidyr", "tibble", "purrr", "ggplot2", "scales"
 )
 
 # Bare‑bones renv project (no automatic snapshot) -------------------------------

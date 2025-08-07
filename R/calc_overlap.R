@@ -26,6 +26,7 @@ calc_overlap <- function(span_tbl) {
   grid <- expand.grid(i = idx, j = idx)
 
   ov_vals <- map_dbl(seq_len(nrow(grid)), \(k) overlap_fun(grid$i[k], grid$j[k]))
+  ov_vals <- round(ov_vals, 3)
 
   tibble(
     species_i = species[grid$i],

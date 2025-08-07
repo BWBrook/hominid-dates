@@ -6,7 +6,7 @@
 #' @export
 read_hominid <- function(path) {
 
-  import::from("readr",  read_csv, show_col_types)
+  import::from("readr",  read_csv)
   import::from("dplyr",  mutate, across)
   import::from("tibble", as_tibble)
 

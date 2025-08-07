@@ -1,0 +1,112 @@
+
+---
+title: "Spatio‑Temporal Patterns of African Hominins"
+author: "Hominid Dates Project"
+date: "`r format(Sys.Date(), '%d %b %Y')`"
+format:
+  pdf:
+    toc: true
+    number-sections: false
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r setup}
+import::from("targets", tar_read)
+import::from("dplyr", mutate, arrange)
+import::from("kableExtra", kable_styling, kable_classic)
+```
+
+## Overview
+
+This report provides a brief summary of specimen counts and temporal relationships in the **Hominid Dates** database.  
+Full reproducible workflow available in the project GitHub repository (https://github.com/BWBrook/hominid-dates).  
+Here we focus on headline patterns and intuitive graphics.  
+
+---
+
+## 1 Specimen totals
+
+### 1.1 Genus counts
+
+```{r genus-tbl}
+genus_tbl <- tar_read(genus_species_freq)$genus_freq
+knitr::kable(genus_tbl,
+             caption = "Specimen counts per genus (collapsed by duplicate fragments).") |>
+  kable_styling(full_width = FALSE) |>
+  kable_classic()
+```
+
+```{r genus-plot, fig.cap="Specimen counts per genus"}
+tar_read(genus_plot)
+```
+
+### 1.2 Species counts (top 15)
+
+```{r species-tbl}
+species_tbl <- tar_read(genus_species_freq)$species_freq
+knitr::kable(species_tbl,
+             caption = "Specimen counts per species (all taxa).") |>
+  kable_styling(full_width = FALSE) |>
+  kable_classic()
+```
+
+```{r species-plot, fig.cap="Top 15 species by specimen count"}
+tar_read(species_plot)
+```
+
+---
+
+## 2 Temporal ranges
+
+`first_occ` marks the **oldest** directly or indirectly dated horizon for a species;  
+`last_occ` marks the youngest. The line segments in Figure 3 visualise these bounds; points mark ends.
+
+```{r spans-table}
+span_tbl <- tar_read(temporal_span) |>
+  arrange(desc(first_occ))
+```
+
+```{r spans-kable}
+knitr::kable(span_tbl,
+             caption = "First and last appearances by species (Ma).") |>
+  kable_styling(latex_options = c("scale_down")) |>
+  kable_classic()
+```
+
+```{r span-plot, fig.cap="Temporal ranges of each species"}
+tar_read(span_plot)
+```
+
+---
+
+## 3 Pairwise temporal overlap
+
+Values express the length of time (in Ma) two species’ known intervals overlap.  
+*Interpretation tips*:
+
+* An overlap of **≈ 0 Ma** suggests sequential replacement or sampling gaps.  
+* Larger cells (yellow in the heat‑map) denote prolonged co‑occurrence.  
+* The diagonal is set to **NA** so that off‑diagonal relationships stand out; a species trivially overlaps itself by its full span.
+
+```{r overlap-heatmap, fig.cap="Pairwise temporal overlap (Ma)"}
+tar_read(overlap_plot)
+```
+
+---
+
+## 4 Sampling intensity caveat
+
+The pipeline collapses fragments to uniques but records a `sampling_intensity` count.  
+Where sampling is sparse (low counts or long hiatuses), absences may reflect fossilisation and recovery bias rather than true local extirpation.  
+Upcoming occupancy models will incorporate this intensity as a detection covariate.
+
+---
+
+## 5 Next steps
+
+1. Implement Solow’s **OLE** to estimate continental extinction probabilities.  
+2. Fit hierarchical occupancy models at key sites (e.g., Olduvai Gorge) integrating `sampling_intensity`.  
+3. Visualise spatio‑temporal colonisation fronts via animated maps.

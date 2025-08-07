@@ -15,6 +15,6 @@ summarise_spans <- function(tbl) {
       last_occ  = min(lower, na.rm = TRUE),
       .groups   = "drop"
     ) |>
-    mutate(duration = first_occ - last_occ) |>
+    mutate(duration = round(first_occ - last_occ, 3)) |>
     arrange(desc(first_occ))
 }
