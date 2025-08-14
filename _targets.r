@@ -26,6 +26,8 @@ import::here(plot_overlap_heatmap,  .from = "R/plot_overlap_heatmap.R")
 import::here(write_plot,            .from = "R/write_plot.R")
 import::here(plot_spans_ci, plot_overlap_heatmap_mc, 
              plot_bin_counts_mc,    .from = "R/plot_mc.R")
+import::here(country_intensity, estimate_site_lambda, compute_reocc_pvals,
+             likely_reoccupancy, plot_reocc_pvals, .from = "R/reoccupancy.R")
 
 tar_option_set(
   packages = c("dplyr", "tidyr", "here", "readr", "tibble", "purrr", 
@@ -227,20 +229,67 @@ list(
     write_plot(bin_counts_plot, "bin_counts_mc.png", width = 7, height = 4),
     format = "file"
   ),
-  # ---- Quarto report -------------------------------------------------------------
-  # Render the Quarto PDF report (always rerender).
+  # 5 site occupancy gaps ---------------------------------------------------------
+  # Country-level sampling intensity per 0.1 Ma bin (proxy for effort).
+  tar_target(
+    country_intensity_bins,
+    country_intensity(occ_tbl_no_indet, width = 0.1)
+  ),
+  # Site-specific lambda(t) scaled to observed site counts.
+  tar_target(
+    site_lambda,
+    estimate_site_lambda(occ_tbl_no_indet, width = 0.1)
+  ),
+  # CSV export: site_lambda per bin (retain NA + comment column).
+  tar_target(
+    site_lambda_csv,
+    write_output(site_lambda, "site_lambda.csv"),
+    format = "file"
+  ),
+  # Gap-wise P(no finds) per site under inhomogeneous Poisson.
+  tar_target(
+    reocc_pvals,
+    compute_reocc_pvals(occ_tbl_no_indet, site_lambda)
+  ),
+  # CSV export: gap p-values ordered by ascending p-value.
+  tar_target(
+    reocc_pvals_csv,
+    write_output(dplyr::arrange(reocc_pvals, p_value), "reocc_pvals.csv"),
+    format = "file"
+  ),
+  # Subset of likely re-occupancy events after FDR correction.
+  tar_target(
+    likely_reoccupancy_events,
+    likely_reoccupancy(reocc_pvals)
+  ),
+  # CSV export: likely re-occupancy events (FDR < 0.05).
+  tar_target(
+    likely_reoccupancy_events_csv,
+    write_output(likely_reoccupancy_events, "likely_reoccupancy_events.csv"),
+    format = "file"
+  ),
+  # Scatter plot of gap duration vs P(no finds), highlighting FDR-significant gaps.
+  tar_target(
+    reocc_pvals_plot,
+    plot_reocc_pvals(reocc_pvals)
+  ),
+  # Save re-occupancy p-values plot to PNG.
   tar_target(
     pdf_report,
     {
-      quarto_render(
-        input  = "report.qmd",
-        output_format = "pdf",
-        execute_params = list()
+      # explicit dependencies: list them so {targets} builds them first
+      deps <- list(
+        genus_freq_csv, species_freq_csv, temporal_span_csv,
+        overlap_matrix_csv, spans_mc_csv, overlap_mc_csv,
+        bin_counts_mc_csv, genus_plot_file, species_plot_file,
+        span_plot_file, span_mc_plot_file, overlap_plot_file,
+        overlap_mc_plot_file, bin_counts_plot_file, site_lambda,
+        site_lambda_csv, reocc_pvals_csv, country_intensity_bins,
+        likely_reoccupancy_events_csv, reocc_pvals_plot
       )
+      quarto::quarto_render("report.qmd", output_format = "pdf")
       "report.pdf"
     },
-    format = "file",
-    cue = targets::tar_cue(mode = "always")   # re-render every run
+    format = "file"
   )
-
 )

@@ -142,7 +142,35 @@ Upcoming occupancy models will incorporate this intensity as a detection covaria
 
 ---
 
-## 6 Next steps
+## 6 Re-occupancy gaps (Poisson)
+
+We model detection at each site as an inhomogeneous Poisson process with a rate that tracks local sampling intensity through time. For each observed hiatus between finds at a site, we compute the probability of seeing no finds under the model and flag unexpectedly long gaps after FDR correction.
+
+```{r reocc-top}
+reocc_tbl  <- tar_read(reocc_pvals)
+likely_tbl <- tar_read(likely_reoccupancy_events)
+```
+
+```{r reocc-plot, fig.cap="Gap-wise P(no finds) vs. hiatus duration; highlighted points pass FDR < 0.05"}
+tar_read(reocc_pvals_plot)
+```
+
+```{r reocc-likely}
+if (nrow(likely_tbl) > 0) {
+  knitr::kable(likely_tbl,
+               caption = "Likely re-occupancy events (FDR < 0.05), ordered by adjusted p-value.") |>
+    kable_styling(full_width = FALSE) |>
+    kable_classic()
+} else {
+  cat("No gaps pass FDR < 0.05 under the current specification.")
+}
+```
+
+Exported artefacts (see outputs/): site-level lambda per bin (`site_lambda.csv`), full gap table (`reocc_pvals.csv`), and flagged events (`likely_reoccupancy_events.csv`).
+
+---
+
+## 7 Next steps
 
 1. Implement Solow’s **OLE** to estimate continental extinction probabilities.  
 2. Fit hierarchical occupancy models at key sites (e.g., Olduvai Gorge) integrating `sampling_intensity`.  
