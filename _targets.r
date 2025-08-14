@@ -5,19 +5,27 @@ import::from("quarto", quarto_render)
 import::from("here", here)
 
 # helper functions -----------------------------------------------------------------
-import::here(read_hominid,        .from = "R/read_hominid.R")
-import::here(collapse_fragments,  .from = "R/collapse_fragments.R")
-import::here(summarise_freq,      .from = "R/summarise_freq.R")
-import::here(summarise_spans,     .from = "R/summarise_spans.R")
-import::here(calc_overlap,        .from = "R/calc_overlap.R")
-import::here(write_output,        .from = "R/write_outputs.R")
-import::here(filter_indet,        .from = "R/filter_indet.R")
+import::here(read_hominid,          .from = "R/read_hominid.R")
+import::here(collapse_fragments,    .from = "R/collapse_fragments.R")
+import::here(summarise_freq,        .from = "R/summarise_freq.R")
+import::here(summarise_spans,       .from = "R/summarise_spans.R")
+import::here(calc_overlap,          .from = "R/calc_overlap.R")
+import::here(write_output,          .from = "R/write_outputs.R")
+import::here(filter_indet,          .from = "R/filter_indet.R")
+import::here(mc_dates,              .from = "R/mc_dates.R")
+import::here(spans_from_draws,      .from = "R/spans_from_draws.R")
+import::here(overlap_from_draws,    .from = "R/overlap_from_draws.R")
+import::here(bin_counts_from_draws, 
+             bin_sensitivity,       .from = "R/bin_counts_mc.R")
+import::here(mc_ci_convergence,     .from = "R/mc_checks.R")
 
 import::here(plot_genus_freq, 
-             plot_species_freq,    .from = "R/plot_genus_species_freq.R")
-import::here(plot_temporal_span,   .from = "R/plot_temporal_span.R")
-import::here(plot_overlap_heatmap, .from = "R/plot_overlap_heatmap.R")
-import::here(write_plot,           .from = "R/write_plot.R")
+             plot_species_freq,     .from = "R/plot_genus_species_freq.R")
+import::here(plot_temporal_span,    .from = "R/plot_temporal_span.R")
+import::here(plot_overlap_heatmap,  .from = "R/plot_overlap_heatmap.R")
+import::here(write_plot,            .from = "R/write_plot.R")
+import::here(plot_spans_ci, plot_overlap_heatmap_mc, 
+             plot_bin_counts_mc,    .from = "R/plot_mc.R")
 
 tar_option_set(
   packages = c("dplyr", "tidyr", "here", "readr", "tibble", "purrr", 
@@ -27,97 +35,200 @@ tar_option_set(
 
 list(
   # 1 raw data ---------------------------------------------------------------------
+  # Path to the cleaned input CSV file.
   tar_target(
     raw_csv,
     here("data", "hominid.csv"),
     format = "file"
   ),
+  # Read the hominid CSV into a typed tibble.
   tar_target(
     raw_tbl,
     read_hominid(raw_csv)
   ),
   # 2 deduplicate fragments --------------------------------------------------------
+  # Collapse duplicate fragments to unique occurrences; add sampling_intensity.
   tar_target(
     occ_tbl,
     collapse_fragments(raw_tbl)
   ),
   # 2b drop indeterminates ----
+  # Remove rows with indeterminate species assignments.
   tar_target(
     occ_tbl_no_indet,
     filter_indet(occ_tbl)
   ),
   # 3 summaries --------------------------------------------------------------------
+  # Specimen counts by genus and species (weighting by sampling_intensity).
   tar_target(
     genus_species_freq,
     summarise_freq(occ_tbl_no_indet)
   ),
+  # First and last appearance bounds per species (Ma).
   tar_target(
     temporal_span,
     summarise_spans(occ_tbl_no_indet)
   ),
+  # Pairwise temporal overlap (Ma) from the point-estimated spans.
   tar_target(
     overlap_matrix,
     calc_overlap(temporal_span)
   ),
+  # 3b Monte Carlo uncertainty propagation ---------------------------------
+  # Monte Carlo draws of latent dates per occurrence (Uniform over [lower, upper]).
+  tar_target(
+    mc_draws,
+    mc_dates(occ_tbl_no_indet, B = 2000, dist = "uniform")
+  ),
+  # Species span medians and 90% CIs aggregated across MC draws.
+  tar_target(
+    spans_mc,
+    spans_from_draws(mc_draws)
+  ),
+  # Pairwise overlap medians and 90% CIs aggregated across MC draws.
+  tar_target(
+    overlap_mc,
+    overlap_from_draws(mc_draws)
+  ),
+  # Species richness per time bin (median and 90% CI over draws).
+  tar_target(
+    bin_counts_mc,
+    bin_counts_from_draws(mc_draws, bin_width = 0.1)
+  ),
+  # optional sensitivity -----------------------------------------------------
+  # Sensitivity of bin counts to sampling distribution (Uniform/Triangular/Beta).
+  tar_target(
+    bin_sense,
+    bin_sensitivity(occ_tbl_no_indet, B = 1000, bin_width = 0.1)
+  ),
+  # Convergence check: CI width vs number of MC draws B.
+  tar_target(
+    mc_conv,
+    mc_ci_convergence(occ_tbl_no_indet, B_grid = c(200, 500, 1000, 2000), dist = "uniform")
+  ),
   # 4 write artefacts to /outputs --------------------------------------------------
+  # Write genus frequency table to CSV.
   tar_target(
     genus_freq_csv,
     write_output(genus_species_freq$genus_freq, "genus_freq.csv"),
     format = "file"
   ),
+  # Write species frequency table to CSV.
   tar_target(
     species_freq_csv,
     write_output(genus_species_freq$species_freq, "species_freq.csv"),
     format = "file"
   ),
+  # Write species span bounds (point estimates) to CSV.
   tar_target(
     temporal_span_csv,
     write_output(temporal_span, "temporal_span.csv"),
     format = "file"
   ),
+  # Write pairwise overlap matrix (point estimates) to CSV.
   tar_target(
     overlap_matrix_csv,
     write_output(overlap_matrix, "overlap_matrix.csv"),
     format = "file"
   ),
+  # Write MC span medians and 90% CIs to CSV.
+  tar_target(
+    spans_mc_csv,
+    write_output(spans_mc, "spans_mc_ci.csv"),
+    format = "file"
+  ),
+  # Write MC overlap medians and 90% CIs to CSV.
+  tar_target(
+    overlap_mc_csv,
+    write_output(overlap_mc, "overlap_mc_ci.csv"),
+    format = "file"
+  ),
+  # Write MC species richness per bin (median and 90% CI) to CSV.
+  tar_target(
+    bin_counts_mc_csv,
+    write_output(bin_counts_mc, "bin_counts_mc_ci.csv"),
+    format = "file"
+  ),
   # ---- plotting targets ----------------------------------------------------------
+  # Bar plot of specimen counts per genus.
   tar_target(
     genus_plot,
     plot_genus_freq(genus_species_freq$genus_freq)
   ),
+  # Save genus counts plot to PNG.
   tar_target(
     genus_plot_file,
     write_plot(genus_plot, "genus_freq.png"),
     format = "file"
   ),
+  # Bar plot of specimen counts per species.
   tar_target(
     species_plot,
     plot_species_freq(genus_species_freq$species_freq)
   ),
+  # Save species counts plot to PNG.
   tar_target(
     species_plot_file,
     write_plot(species_plot, "species_freq.png"),
     format = "file"
   ),
+  # Horizontal range plot of point-estimated first–last appearances.
   tar_target(
     span_plot,
     plot_temporal_span(temporal_span)
   ),
+  # Save point-estimated span plot to PNG.
   tar_target(
     span_plot_file,
     write_plot(span_plot, "temporal_span.png"),
     format = "file"
   ),
+  # Range plot with MC medians and 90% CIs per species.
+  tar_target(
+    span_mc_plot,
+    plot_spans_ci(spans_mc)
+  ),
+  # Save MC span plot to PNG.
+  tar_target(
+    span_mc_plot_file,
+    write_plot(span_mc_plot, "temporal_span_mc.png"),
+    format = "file"
+  ),
+  # Heat‑map of pairwise overlap from point-estimated spans.
   tar_target(
     overlap_plot,
     plot_overlap_heatmap(overlap_matrix)
   ),
+  # Save point-estimated overlap heat‑map to PNG.
   tar_target(
     overlap_plot_file,
     write_plot(overlap_plot, "overlap_heatmap.png"),
     format = "file"
   ),
+  # Heat‑map of median pairwise overlap across MC draws.
+  tar_target(
+    overlap_mc_plot,
+    plot_overlap_heatmap_mc(overlap_mc)
+  ),
+  # Save MC overlap heat‑map to PNG.
+  tar_target(
+    overlap_mc_plot_file,
+    write_plot(overlap_mc_plot, "overlap_heatmap_mc.png"),
+    format = "file"
+  ),
+  # Line + ribbon plot of species richness over time (median + 90% CI).
+  tar_target(
+    bin_counts_plot,
+    plot_bin_counts_mc(bin_counts_mc)
+  ),
+  # Save species richness plot to PNG.
+  tar_target(
+    bin_counts_plot_file,
+    write_plot(bin_counts_plot, "bin_counts_mc.png", width = 7, height = 4),
+    format = "file"
+  ),
   # ---- Quarto report -------------------------------------------------------------
+  # Render the Quarto PDF report (always rerender).
   tar_target(
     pdf_report,
     {

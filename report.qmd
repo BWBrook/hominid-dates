@@ -80,6 +80,23 @@ knitr::kable(span_tbl,
 tar_read(span_plot)
 ```
 
+### 2.1 Uncertainty via Monte Carlo
+
+We propagate dating uncertainty by sampling each occurrence’s true date from its interval and recomputing species spans over B draws.
+Summaries report medians and 90% CIs.
+
+```{r spans-mc-table}
+spans_mc_tbl <- tar_read(spans_mc)
+knitr::kable(spans_mc_tbl,
+             caption = "Species span medians with 90\\% credible intervals (Ma).") |>
+  kable_styling(latex_options = c("scale_down")) |>
+  kable_classic()
+```
+
+```{r span-mc-plot, fig.cap="Temporal spans with MC median and 90% CI"}
+tar_read(span_mc_plot)
+```
+
 ---
 
 ## 3 Pairwise temporal overlap
@@ -95,9 +112,29 @@ Values express the length of time (in Ma) two species’ known intervals overla
 tar_read(overlap_plot)
 ```
 
+```{r overlap-heatmap-mc, fig.cap="Pairwise temporal overlap (median over MC draws)"}
+tar_read(overlap_mc_plot)
+```
+
 ---
 
-## 4 Sampling intensity caveat
+## 4 Species richness through time (MC)
+
+```{r bin-counts-mc-table}
+bin_counts_tbl <- tar_read(bin_counts_mc)
+knitr::kable(bin_counts_tbl,
+             caption = "Species richness per 0.1 Ma bin: median and 90\\% CI.") |>
+  kable_styling(latex_options = c("scale_down")) |>
+  kable_classic()
+```
+
+```{r bin-counts-mc-plot, fig.cap="Species richness over time (median with 90% CI)"}
+tar_read(bin_counts_plot)
+```
+
+---
+
+## 5 Sampling intensity caveat
 
 The pipeline collapses fragments to uniques but records a `sampling_intensity` count.  
 Where sampling is sparse (low counts or long hiatuses), absences may reflect fossilisation and recovery bias rather than true local extirpation.  
@@ -105,7 +142,7 @@ Upcoming occupancy models will incorporate this intensity as a detection covaria
 
 ---
 
-## 5 Next steps
+## 6 Next steps
 
 1. Implement Solow’s **OLE** to estimate continental extinction probabilities.  
 2. Fit hierarchical occupancy models at key sites (e.g., Olduvai Gorge) integrating `sampling_intensity`.  

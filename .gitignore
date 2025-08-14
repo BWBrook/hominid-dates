@@ -67,10 +67,7 @@ outputs/
 *.pdf
 
 # _targets
-# The object store is committed ONCE; ignore future changes
-# Remove the leading "!" below if you decide to ship no cache at all.
-!_targets/              # keep the committed cache
-_targets/**             # but ignore any new/changed files
+/_targets/* 
 
 # Misc
 .DS_Store
