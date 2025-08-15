@@ -10,6 +10,8 @@ format:
     geometry:
       - left=0.6in
       - right=0.6in
+header-includes:
+  - \usepackage{pdflscape}
 execute:
   echo: false
   warning: false
@@ -19,14 +21,22 @@ execute:
 ```{r setup}
 import::from("targets", tar_read)
 import::from("dplyr", mutate, arrange)
-import::from("kableExtra", kable_styling, kable_classic)
+import::from("kableExtra", kable_styling, kable_classic, landscape)
 ```
 
 ## Overview
 
-This report provides a brief summary of specimen counts and temporal relationships in the **Hominid Dates** database.  
-Full reproducible workflow available in the project GitHub repository (https://github.com/BWBrook/hominid-dates).  
-Here we focus on headline patterns and intuitive graphics.  
+This report summarises what the current dataset can tell us about when and where African hominins appear in the record. It is written for paleoarchaeologists who may not use statistical tools day‑to‑day.
+
+How to read this report:
+
+- Ma: All dates are in millions of years ago (Ma). Larger numbers are older.
+- Axes: Time figures use a reversed x‑axis (older on the right, younger on the left).
+- Uncertainty: Some figures show a “90% interval.” This is the central range of plausible values after accounting for dating uncertainty; think of it as “where most of the evidence points,” not a hard bound.
+- Takeaways: After each table or figure, we include a short, plain‑language interpretation of what to look for and why it matters.
+
+Full reproducible workflow is available in the project GitHub repository (https://github.com/BWBrook/hominid-dates).  
+The emphasis here is on clear visuals and practical interpretation.
 
 ---
 
@@ -43,9 +53,24 @@ knitr::kable(genus_tbl,
   kable_classic()
 ```
 
+```{r genus-interpret}
+gf <- tar_read(genus_species_freq)$genus_freq
+top <- head(gf, 3)
+if (nrow(top) >= 3) {
+  cat(sprintf(
+    "Interpretation: %s dominates the dataset (%s specimens), followed by %s (%s) and %s (%s). This concentration suggests sampling emphasises these genera.",
+    top$genus[1], top$n_specimens[1], top$genus[2], top$n_specimens[2], top$genus[3], top$n_specimens[3]
+  ))
+}
+```
+
+What to look for: The first rows show genera with the most specimens after collapsing duplicate fragments. High counts may reflect true abundance, broad geographic spread, or simply more research attention and collection history. Use this as context for later sections—well‑sampled genera will often have better‑constrained timelines.
+
 ```{r genus-plot, fig.cap="Specimen counts per genus"}
 tar_read(genus_plot)
 ```
+
+Reading the plot: Bars reflect specimen totals by genus. Taller bars indicate more material in the database. This does not automatically mean a genus was more common in life; collecting and preservation strongly influence these totals.
 
 ### 1.2 Species counts (top 15)
 
@@ -58,16 +83,38 @@ knitr::kable(species_tbl,
   kable_classic()
 ```
 
+```{r species-interpret}
+sf <- tar_read(genus_species_freq)$species_freq
+top <- head(sf, 5)
+bul <- apply(top, 1, function(row) sprintf("- %s: %s specimens", row[["species"]], row[["n_specimens"]]))
+cat(paste(bul, collapse = "\n"))
+```
+
+What to look for: The table lists species‑level totals. Species with very few specimens may yield noisier results in later analyses; treat their temporal and spatial summaries with extra caution.
+
 ```{r species-plot, fig.cap="Top 15 species by specimen count"}
 tar_read(species_plot)
 ```
+
+Reading the plot: We limit to the top 15 to keep the figure readable. The relative sizes mirror the table above and help set expectations about which species will have clearer signals in the next sections.
+
+Takeaways:
+- Australopithecus and Paranthropus dominate specimen counts; Homo is much rarer.
+- Species counts are led by a_africanus and a_afarensis; most others are far less sampled.
+- Interpret later results with this sampling context in mind.
 
 ---
 
 ## 2 Temporal ranges
 
-`first_occ` marks the **oldest** directly or indirectly dated horizon for a species;  
-`last_occ` marks the youngest. The line segments in Figure 3 visualise these bounds; points mark ends.
+We summarise, for each species, its oldest and youngest known occurrences in the dataset. These are simple bounds based on the dating information we have, before modelling uncertainty.
+
+Notes on terminology:
+
+- first_occ: The oldest known occurrence (bigger Ma value = older).
+- last_occ: The youngest known occurrence.
+- Duration: The span between first_occ and last_occ.
+- Figures use a reversed time axis (older to the right, younger to the left).
 
 ```{r spans-table}
 span_tbl <- tar_read(temporal_span) |>
@@ -82,14 +129,32 @@ knitr::kable(span_tbl,
   kable_classic()
 ```
 
+```{r spans-interpret}
+dur_sorted <- dplyr::arrange(span_tbl, dplyr::desc(duration))
+top <- head(dur_sorted, 3)
+bul <- apply(top, 1, function(r) sprintf(
+  "- %s spans ~%0.2f Ma (%0.2f–%0.2f Ma)",
+  r[["species"]], as.numeric(r[["duration"]]), as.numeric(r[["last_occ"]]), as.numeric(r[["first_occ"]])
+))
+cat(paste("Longest spans (point estimates):", paste(bul, collapse = "\n"), sep = "\n"))
+```
+
+How to read: Rows with a large difference between first_occ and last_occ indicate species known across a longer interval. Very narrow spans can reflect either real short durations or sparse/uncertain dating.
+
 ```{r span-plot, fig.cap="Temporal ranges of each species"}
 tar_read(span_plot)
 ```
 
+Reading the plot: Each line shows the known time window for a species. Longer lines mean more extended presence in the record; shorter lines may signal limited data or shorter occupations. Remember the x‑axis runs from older (right) to younger (left).
+
 ### 2.1 Uncertainty via Monte Carlo
 
-We propagate dating uncertainty by sampling each occurrence’s true date from its interval and recomputing species spans over B draws.
-Summaries report medians and 90% CIs.
+Dating is uncertain because many finds have age ranges rather than exact ages. To reflect this, we repeatedly sample plausible dates within each occurrence’s range and recompute species ranges many times. We then summarise the results.
+
+How to interpret the summaries:
+
+- Median: The “typical” value across the many re‑computations.
+- 90% interval: Where most solutions land when we respect the given age ranges. Narrow intervals suggest better‑constrained dates; wide intervals indicate more uncertainty.
 
 ```{r spans-mc-table}
 spans_mc_tbl <- tar_read(spans_mc)
@@ -100,28 +165,79 @@ knitr::kable(spans_mc_tbl,
   kable_classic()
 ```
 
+```{r spans-mc-interpret}
+s <- spans_mc_tbl
+s$dur_uncert <- s$dur_hi - s$dur_lo
+top_wide <- dplyr::arrange(s, dplyr::desc(dur_uncert)) |> head(3)
+bul <- apply(top_wide, 1, function(r) sprintf(
+  "- %s: median duration %0.2f Ma (90%% interval %0.2f–%0.2f Ma)",
+  r[["species"]], as.numeric(r[["dur_med"]]), as.numeric(r[["dur_lo"]]), as.numeric(r[["dur_hi"]])
+))
+cat(paste("Widest duration uncertainty (MC):", paste(bul, collapse = "\n"), sep = "\n"))
+```
+
+What to look for: Compare each species’ median first/last appearances with the 90% interval bounds. Species with wide intervals may shift in or out of overlap with others once uncertainty is considered.
+
 ```{r span-mc-plot, fig.cap="Temporal spans with MC median and 90% CI"}
 tar_read(span_mc_plot)
 ```
+
+Reading the plot: Thin lines mark the 90% interval; thick lines and points mark the median span. Focus on whether species’ intervals clearly overlap or remain distinct once uncertainty is included.
+
+Takeaways:
+- Longest spans: p_aethiopicus and p_boisei (~1.2 Ma); h_erectus and a_africanus near 1 Ma.
+- Uncertainty narrows or widens spans by species; several retain clear separation, while others plausibly overlap when uncertainty is considered.
 
 ---
 
 ## 3 Pairwise temporal overlap
 
-Values express the length of time (in Ma) two species’ known intervals overlap.  
-*Interpretation tips*:
+This section shows, for every species pair, how much time their known ranges overlap. Larger values suggest longer periods of co‑occurrence; near‑zero values point to little or no known overlap.
 
-* An overlap of **≈ 0 Ma** suggests sequential replacement or sampling gaps.  
-* Larger cells (yellow in the heat‑map) denote prolonged co‑occurrence.  
-* The diagonal is set to **NA** so that off‑diagonal relationships stand out; a species trivially overlaps itself by its full span.
+How to read the heat‑map:
+
+- Darker/lighter colours indicate less/more overlap in Ma.
+- The diagonal is blank because a species overlaps itself by definition.
+- Near‑zero overlap may mean genuine turnover or simply gaps in sampling.
 
 ```{r overlap-heatmap, fig.cap="Pairwise temporal overlap (Ma)"}
 tar_read(overlap_plot)
 ```
 
+```{r overlap-interpret}
+ov_wide <- tar_read(overlap_matrix)
+long <- tidyr::pivot_longer(ov_wide, -species_i, names_to = "species_j", values_to = "overlap_Ma")
+long <- dplyr::filter(long, species_i != species_j)
+top <- dplyr::arrange(long, dplyr::desc(overlap_Ma)) |> head(5)
+bul <- apply(top, 1, function(r) sprintf(
+  "- %s with %s: ~%0.2f Ma",
+  r[["species_i"]], r[["species_j"]], as.numeric(r[["overlap_Ma"]])
+))
+cat(paste("Largest point-estimated overlaps:", paste(bul, collapse = "\n"), sep = "\n"))
+```
+
+Takeaway: Use this grid to spot clusters of species that co‑occur for long periods and pairs that rarely coincide. This helps frame hypotheses about ecological or geographic partitioning versus chronological succession.
+
 ```{r overlap-heatmap-mc, fig.cap="Pairwise temporal overlap (median over MC draws)"}
 tar_read(overlap_mc_plot)
 ```
+
+```{r overlap-mc-interpret}
+ov_mc <- tar_read(overlap_mc)
+ov_mc2 <- dplyr::filter(ov_mc, species_i != species_j)
+top <- dplyr::arrange(ov_mc2, dplyr::desc(ov_med)) |> head(5)
+bul <- apply(top, 1, function(r) sprintf(
+  "- %s with %s: median ~%0.2f Ma (90%% %0.2f–%0.2f)",
+  r[["species_i"]], r[["species_j"]], as.numeric(r[["ov_med"]]), as.numeric(r[["ov_lo"]]), as.numeric(r[["ov_hi"]])
+))
+cat(paste("Largest overlaps with uncertainty:", paste(bul, collapse = "\n"), sep = "\n"))
+```
+
+With uncertainty included: Overlap values can shift once dating ranges are respected. Focus on changes relative to the point estimates above—stable, high‑overlap pairs are more robust; volatile, low‑overlap pairs may reflect sparse data.
+
+Takeaways:
+- Strong co‑occurrence pairs stand out and remain robust under uncertainty; use these to target ecological or geographic comparisons.
+- Near‑zero overlaps likely indicate turnover or sampling gaps; corroborate with stratigraphic context.
 
 ---
 
@@ -136,15 +252,131 @@ knitr::kable(bin_counts_tbl,
   kable_classic()
 ```
 
+```{r richness-interpret}
+b <- bin_counts_tbl
+peak <- b[which.max(b$n_med), c("bin_mid", "n_med")]
+cat(sprintf(
+  "Interpretation: Peak median richness is %.0f species around %0.2f Ma; elevated diversity persists from ~2.35 to ~2.00 Ma (see plot).",
+  as.numeric(peak$n_med), as.numeric(peak$bin_mid)
+))
+```
+
+How to read: For each 0.1 Ma time slice, we estimate how many species are present when accounting for dating uncertainty. The 90% interval reflects uncertainty in both dating and binning.
+
 ```{r bin-counts-mc-plot, fig.cap="Species richness over time (median with 90% CI)"}
 tar_read(bin_counts_plot)
 ```
 
+Takeaway: Look for broad peaks and troughs rather than small wiggles. Peaks may reflect periods of genuine diversity or times/places with more sampling. Remember the time axis is reversed (older on the right).
+
+Takeaways:
+- Peak median richness ~6 species around ~2.35–2.00 Ma; earlier intervals support fewer concurrent species.
+
 ---
 
-## 5 Site clusters (HDBSCAN)
+## 5 Range dynamics (spatial)
 
-Occurrences are clustered jointly in space–time using HDBSCAN on scaled `(lon, lat, date)` coordinates. Each observation receives a `cluster_id` (or `NA` if treated as noise). For each cluster, the within‑cluster temporal span serves as a simple "mixing index".
+This section describes where species are found over time. For each time bin we report: the geographic centre of observations (centroid), north–south and east–west extent, the area that encloses the outermost finds (convex hull), and how far the centroid moves between bins (velocity).
+
+Interpretation tips:
+
+- Centroids trace the “centre of mass” of finds; they are summaries, not migration routes.
+- Extents (lat/long spans) and hull areas can be small when data are sparse, and large when finds are widespread.
+- Velocity reflects how quickly the centroid shifts; one‑bin sequences will not show a connecting line in the map.
+
+```{r range-metrics-table}
+range_tbl <- tar_read(range_metrics)
+# Abbreviate headers for readability
+range_tbl_disp <- range_tbl |>
+  dplyr::rename(
+    cent_lat = centroid_lat,
+    cent_lon = centroid_long,
+    lon_span = long_span,
+    hull_km2 = hull_area_km2,
+    vel_km_per_Ma = velocity_km_per_Ma
+  )
+
+kableExtra::landscape(
+  knitr::kable(range_tbl_disp,
+             caption = "Range metrics per species per time bin.",
+             digits = 3) |>
+  kable_styling(latex_options = c("scale_down")) |>
+  kable_classic()
+)
+```
+
+How to read: Within each species, scan bins from older to younger (right to left in time figures). Increases in hull_area_km2 suggest wider known distributions; jumps in velocity_km_per_Ma indicate rapid shifts in where finds are concentrated.
+
+```{r range-metrics-note}
+if (all(is.na(range_tbl$hull_area_km2) | range_tbl$hull_area_km2 == 0)) {
+  cat("Note: Hull areas are 0 in this build. This occurs when fewer than three distinct localities fall in each species×bin; with sufficient points, areas will be > 0.")
+}
+```
+
+```{r range-interpret}
+rt <- range_tbl
+nonzero <- sum(rt$hull_area_km2 > 0, na.rm = TRUE)
+top_vel <- rt[order(rt$velocity_km_per_Ma, decreasing = TRUE), ][1:min(3, nrow(rt)), c("species","bin","velocity_km_per_Ma")]
+cat(sprintf(
+  "Interpretation: Hull areas > 0 in %d species×bin rows; top centroid shifts (km/Ma) occur at: %s",
+  nonzero,
+  paste(apply(top_vel, 1, function(r) sprintf("%s (bin %0.2f): %0.0f km/Ma", r[["species"]], as.numeric(r[["bin"]]), as.numeric(r[["velocity_km_per_Ma"]]))), collapse = "; ")
+))
+```
+
+```{r centroid-tracks, fig.cap="Centroid tracks (zoomed to occupied extent) for selected species"}
+# Build zoomed-in centroid track maps for the same species
+range_tbl <- tar_read(range_metrics)
+ct_tbl    <- tar_read(centroid_track_maps)
+sp3       <- head(ct_tbl$species, 3)
+
+plot_centroid_zoom <- function(dat, sp) {
+  import::from("rnaturalearth", ne_countries)
+  import::from("ggplot2", ggplot, aes, geom_sf, geom_path, geom_point, coord_sf, labs, theme_minimal)
+
+  dat <- dat[dat$species == sp, , drop = FALSE]
+  if (nrow(dat) == 0) return(NULL)
+  xr <- range(dat$centroid_long, na.rm = TRUE)
+  yr <- range(dat$centroid_lat,  na.rm = TRUE)
+  pad_x <- max(diff(xr) * 0.2, 2)
+  pad_y <- max(diff(yr) * 0.2, 2)
+  xlim  <- c(xr[1] - pad_x, xr[2] + pad_x)
+  ylim  <- c(yr[1] - pad_y, yr[2] + pad_y)
+
+  world <- ne_countries(scale = "medium", continent = "Africa", returnclass = "sf")
+  p <- ggplot() +
+    geom_sf(data = world, fill = "grey95", color = "grey70", linewidth = 0.2) +
+    {
+      if (nrow(dat) > 1) geom_path(data = dat, aes(x = centroid_long, y = centroid_lat), color = "steelblue")
+      else NULL
+    } +
+    geom_point(data = dat, aes(x = centroid_long, y = centroid_lat), size = 2, color = "steelblue") +
+    coord_sf(xlim = xlim, ylim = ylim, expand = FALSE) +
+    labs(x = "Longitude", y = "Latitude",
+         title = paste("Centroid track (zoomed):", sp),
+         subtitle = "Zoomed to the occupied extent for clarity") +
+    theme_minimal()
+  p
+}
+
+plots <- lapply(sp3, function(s) plot_centroid_zoom(range_tbl, s))
+for (p in plots) if (!is.null(p)) print(p)
+```
+
+Interpretation: Tracks cluster in East Africa for the sampled species, with short within‑bin movements. Large apparent “jumps” reflect bins with few, spatially separated finds; treat high velocities as signals to inspect underlying points.
+
+Exported artefacts: full matrix (`range_metrics.csv`), per‑species CSVs (`range_metrics_<species>.csv`), and centroid track PNGs (`centroid_track_<species>.png`). Use these for mapping or additional per‑species exploration.
+
+Takeaways:
+- Centroid movement is modest and local in most bins; large jumps often reflect sparse, spatially separated finds.
+- Hull areas are zero in this build due to <3 localities per species×bin; with denser bins, areas will inform spatial spread.
+- Use per‑species CSVs to inspect bins behind any high velocities.
+
+---
+
+## 6 Site clusters (HDBSCAN)
+
+We group finds that are close in both location and time. Each observation belongs to a cluster (or remains unclustered if it does not fit cleanly). For each cluster, we measure how spread out it is in time—our simple “mixing index.”
 
 ```{r st-mix-tbl}
 st_mix <- tar_read(mixing_index_by_cluster)
@@ -155,55 +387,148 @@ knitr::kable(st_mix,
   kable_classic()
 ```
 
+How to read: Higher mixing_index values indicate clusters spanning longer time windows; low values suggest tighter temporal groupings.
+
 ```{r st-mix-plot, fig.cap="Within‑cluster temporal mixing index by cluster"}
 tar_read(mixing_index_plot)
 ```
 
-Exported artefacts: per‑observation clusters (`st_clusters.csv`) and cluster‑level mixing indices (`mixing_index_by_cluster.csv`).
+Takeaway: Use this figure to spot clusters that mix material across long intervals versus those that are temporally compact—useful context when interpreting local sequences or potential reworking.
+
+Exported artefacts: per‑observation clusters (`st_clusters.csv`) and  
+cluster‑level mixing indices (`mixing_index_by_cluster.csv`).
+
+Takeaways:
+- Most clusters are temporally tight (median mixing index ~0.05–0.10 Ma); a few span >0.1 Ma and warrant closer stratigraphic review.
 
 ---
 
-## 6 Lead–Lag in FAD/LAD by Country
+## 7 Lead–Lag in FAD/LAD by Country
 
-We compare each country’s first and last appearances (FAD/LAD) to the corresponding continent-level values for the same species. Values are computed over 1000 bootstrap draws from each occurrence’s date interval; we report medians and 95% CIs.
+We ask whether a species tends to appear earlier or later in some countries relative to the continent as a whole. We account for dating uncertainty by repeatedly sampling within age ranges and summarising the results.
+
+Reading the deltas:
+
+- Delta FAD < 0: Country appears earlier than the continent‑wide benchmark (remember: larger Ma = older).
+- Delta FAD > 0: Country appears later.
+- The same logic applies to Delta LAD (last appearances).
 
 ```{r leadlag-tbl}
 leadlag_tbl <- tar_read(leadlag_country)
-knitr::kable(leadlag_tbl,
+# Abbreviate headers for readability
+leadlag_disp <- leadlag_tbl |>
+  dplyr::rename(
+    cont = continent,
+    n = n_records,
+    dFAD_med = delta_fad_median,
+    dFAD_lo  = delta_fad_lower,
+    dFAD_hi  = delta_fad_upper,
+    dLAD_med = delta_lad_median,
+    dLAD_lo  = delta_lad_lower,
+    dLAD_hi  = delta_lad_upper,
+    status   = leadlag_status
+  )
+
+kableExtra::landscape(
+  knitr::kable(leadlag_disp,
              caption = "Delta FAD/Delta LAD by country relative to continent (medians with 95\\% CI).",
              digits = 3) |>
   kable_styling(latex_options = c("scale_down")) |>
   kable_classic()
+)
 ```
+
+```{r leadlag-tbl-interpret}
+ll <- leadlag_tbl
+earliest <- dplyr::arrange(ll, delta_fad_median) |> head(3)
+latest   <- dplyr::arrange(ll, dplyr::desc(delta_fad_median)) |> head(3)
+bul1 <- apply(earliest, 1, function(r) sprintf("- Earliest FAD: %s in %s (%0.3f Ma earlier)", r[["species"]], r[["country"]], as.numeric(r[["delta_fad_median"]])) )
+bul2 <- apply(latest,   1, function(r) sprintf("- Latest FAD: %s in %s (+%0.3f Ma)",       r[["species"]], r[["country"]], as.numeric(r[["delta_fad_median"]])) )
+cat(paste(c("Highlights:", bul1, bul2), collapse = "\n"))
+```
+
+What to look for: Countries with clearly negative Delta FAD may be early locales for a species; clearly positive values indicate later presence. Wide intervals call for cautious interpretation.
 
 ```{r leadlag-ranks}
 leadlag_ranks <- tar_read(leadlag_ranks)
-knitr::kable(leadlag_ranks,
+kableExtra::landscape(
+  knitr::kable(leadlag_ranks,
              caption = "Country rankings by Delta FAD and Delta LAD (ascending; ties share ranks).",
              digits = 3) |>
   kable_styling(latex_options = c("scale_down")) |>
   kable_classic()
+)
 ```
 
-```{r leadlag-maps, fig.cap="Lead–lag choropleths (Delta FAD) for selected species"}
-map_paths <- tar_read(leadlag_maps)$path
-to_show <- head(map_paths, 3)
-knitr::include_graphics(to_show)
+Reading the rankings: Lower ranks (near 1) suggest earlier first appearances relative to the continent; higher ranks suggest later timing.
+
+```{r leadlag-maps, fig.cap="Lead–lag choropleths (Delta FAD), zoomed to species’ countries"}
+leadlag_tbl <- tar_read(leadlag_country)
+sp3 <- unique(leadlag_tbl$species)
+sp3 <- head(sp3, 3)
+
+plot_leadlag_zoom <- function(leadlag_tbl, sp, metric = "delta_fad_median") {
+  import::from("rnaturalearth", ne_countries)
+  import::from("countrycode", countrycode)
+  import::from("dplyr", filter, mutate, select, left_join)
+  import::from("ggplot2", ggplot, aes, geom_sf, scale_fill_gradient2, labs, theme_minimal, coord_sf, guides, guide_colorbar)
+
+  world <- ne_countries(scale = "medium", returnclass = "sf") |>
+    dplyr::select(iso_a3, name, geometry)
+
+  dat <- leadlag_tbl |>
+    dplyr::filter(species == !!sp) |>
+    mutate(iso_a3 = countrycode(country, origin = "country.name", destination = "iso3c")) |>
+    dplyr::select(iso_a3, !!metric)
+
+  world2 <- world |>
+    left_join(dat, by = "iso_a3")
+
+  # determine zoom window over non-NA countries
+  non_na <- !is.na(world2[[metric]])
+  if (!any(non_na)) return(NULL)
+  bb <- sf::st_bbox(world2[non_na, ])
+  pad_x <- max((bb$xmax - bb$xmin) * 0.1, 1)
+  pad_y <- max((bb$ymax - bb$ymin) * 0.1, 1)
+  xlim  <- c(bb$xmin - pad_x, bb$xmax + pad_x)
+  ylim  <- c(bb$ymin - pad_y, bb$ymax + pad_y)
+
+  ggplot() +
+    geom_sf(data = world2, aes(fill = .data[[metric]]), color = "grey40", size = 0.1) +
+    scale_fill_gradient2(
+      name = "Delta FAD (Ma)", low = "#2166ac", mid = "#f7f7f7", high = "#b2182b", midpoint = 0, na.value = "#d9d9d9"
+    ) +
+    coord_sf(xlim = xlim, ylim = ylim, expand = FALSE) +
+    labs(
+      title = paste0("Lead–Lag (Delta FAD), zoomed: ", sp),
+      subtitle = "Blue = earlier than continent; Red = later; Grey = missing",
+      x = NULL, y = NULL
+    ) +
+    theme_minimal() +
+    guides(fill = guide_colorbar(barwidth = 12))
+}
+
+plots_ll <- lapply(sp3, function(s) plot_leadlag_zoom(leadlag_tbl, s))
+for (p in plots_ll) if (!is.null(p)) print(p)
 ```
+
+Interpretation: Zoomed maps highlight early country signals: for example, h_erectus shows earlier first appearances in Ethiopia and Kenya (blue), while some species show later persistence elsewhere (red), aligning with the table highlights below.
+
+Takeaways:
+- Early first appearances concentrate in East Africa for several species (e.g., h_erectus, h_habilis), while later persistence appears in other regions.
+- Use the table’s earliest/ latest highlights to prioritise country‑level stratigraphic follow‑up.
 
 ---
 
-## 7 Sampling intensity caveat
+## 8 Sampling intensity caveat
 
-The pipeline collapses fragments to uniques but records a `sampling_intensity` count.  
-Where sampling is sparse (low counts or long hiatuses), absences may reflect fossilisation and recovery bias rather than true local extirpation.  
-Upcoming occupancy models will incorporate this intensity as a detection covariate.
+We collapse duplicate fragments to single occurrences but keep a `sampling_intensity` count. Where sampling is sparse (few finds or long hiatuses), “absences” can reflect preservation and discovery rather than true absence. The companion analyses use this information to avoid over‑interpreting gaps.
 
 ---
 
-## 8 Re-occupancy gaps (Poisson)
+## 9 Re-occupancy gaps (Poisson)
 
-We model detection at each site as an inhomogeneous Poisson process with a rate that tracks local sampling intensity through time. For each observed hiatus between finds at a site, we compute the probability of seeing no finds under the model and flag unexpectedly long gaps after FDR correction.
+We ask: given local sampling intensity through time, how surprising is a long gap between finds at a site? We use the intensity history to compute the probability of seeing no finds over each gap; very small probabilities suggest a true break in presence, not just missed sampling.
 
 ```{r reocc-top}
 reocc_tbl  <- tar_read(reocc_pvals)
@@ -213,6 +538,8 @@ likely_tbl <- tar_read(likely_reoccupancy_events)
 ```{r reocc-plot, fig.cap="Gap-wise P(no finds) vs. hiatus duration; highlighted points pass FDR < 0.05"}
 tar_read(reocc_pvals_plot)
 ```
+
+How to read: Points show gaps between consecutive finds at each site. Lower values on the y‑axis (smaller probabilities) are more surprising given the local sampling history. Highlighted points pass a multiple‑testing threshold and are candidates for true re‑occupancy events.
 
 ```{r reocc-likely}
 if (nrow(likely_tbl) > 0) {
@@ -226,11 +553,14 @@ if (nrow(likely_tbl) > 0) {
 }
 ```
 
-Exported artefacts (see outputs/): site-level lambda per bin (`site_lambda.csv`), full gap table (`reocc_pvals.csv`), and flagged events (`likely_reoccupancy_events.csv`).
+Exported artefacts (see outputs/): site‑level sampling history per bin (`site_lambda.csv`), full gap table (`reocc_pvals.csv`), and flagged events (`likely_reoccupancy_events.csv`).
+
+Takeaways:
+- One site shows a statistically surprising hiatus (~0.07 Ma) given local sampling intensity; this is a candidate re‑occupancy signal for targeted investigation.
 
 ---
 
-## 9 Next steps
+## 10 Next steps
 
 1. Implement Solow’s **OLE** to estimate continental extinction probabilities.  
 2. Fit hierarchical occupancy models at key sites (e.g., Olduvai Gorge) integrating `sampling_intensity`.  

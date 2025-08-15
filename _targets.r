@@ -32,6 +32,8 @@ import::here(st_cluster, mixing_index_from_st, plot_mixing_index,
              .from = "R/st_cluster.R")
 import::here(fad_lad_leadlag, fad_lad_rankings, plot_leadlag_choropleth,
              write_leadlag_maps, .from = "R/leadlag.R")
+import::here(range_dynamics, plot_centroid_track, write_centroid_maps,
+             write_range_metrics_species, .from = "R/range_dynamics.R")
 
 tar_option_set(
   packages = c("dplyr", "tidyr", "here", "readr", "tibble", "purrr", 
@@ -177,6 +179,25 @@ list(
   # 4. WRITE TABLE ARTEFACTS TO /outputs
   # Purpose: materialise CSVs required by the report and external consumers.
   # -----------------------------------------------------------------------------
+  # Range dynamics: centroid, extents, hull area, velocity per 0.1 Ma bin.
+  tar_target(
+    range_metrics,
+    range_dynamics(occ_tbl_no_indet, bin_width = 0.1)
+  ),
+  tar_target(
+    range_metrics_csv,
+    write_output(range_metrics, "range_metrics.csv"),
+    format = "file"
+  ),
+  # Per-species CSVs and centroid track PNGs (tibbles of paths)
+  tar_target(
+    range_metrics_by_species_csv,
+    write_range_metrics_species(range_metrics)
+  ),
+  tar_target(
+    centroid_track_maps,
+    write_centroid_maps(range_metrics)
+  ),
   # Write genus frequency table to CSV.
   tar_target(
     genus_freq_csv,
@@ -401,7 +422,8 @@ list(
         overlap_mc_plot_file, bin_counts_plot_file, site_lambda,
         site_lambda_csv, reocc_pvals_csv, country_intensity_bins,
         likely_reoccupancy_events_csv, reocc_pvals_plot,
-        leadlag_country_csv, leadlag_ranks_csv, leadlag_maps
+        leadlag_country_csv, leadlag_ranks_csv, leadlag_maps,
+        range_metrics_csv, centroid_track_maps
       )
       quarto::quarto_render("report.qmd", output_format = "pdf")
       "report.pdf"
