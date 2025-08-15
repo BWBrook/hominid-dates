@@ -99,8 +99,7 @@ plot_mixing_index <- function(mix_tbl) {
   ggplot(mix_tbl, aes(x = cluster_id, y = mixing_index)) +
     geom_segment(aes(xend = cluster_id, y = 0, yend = mixing_index), alpha = 0.6) +
     geom_point(size = 2) +
-    labs(x = "cluster_id", y = "Mixing index (Δ date, Ma)",
+    labs(x = "cluster_id", y = "Mixing index (Delta date, Ma)",
          title = "Within-cluster temporal mixing index") +
     theme_minimal()
 }
-

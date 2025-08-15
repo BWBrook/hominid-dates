@@ -7,6 +7,9 @@ format:
   pdf:
     toc: true
     number-sections: false
+    geometry:
+      - left=0.6in
+      - right=0.6in
 execute:
   echo: false
   warning: false
@@ -34,7 +37,8 @@ Here we focus on headline patterns and intuitive graphics.
 ```{r genus-tbl}
 genus_tbl <- tar_read(genus_species_freq)$genus_freq
 knitr::kable(genus_tbl,
-             caption = "Specimen counts per genus (collapsed by duplicate fragments).") |>
+             caption = "Specimen counts per genus (collapsed by duplicate fragments).",
+             digits = 3) |>
   kable_styling(full_width = FALSE) |>
   kable_classic()
 ```
@@ -48,7 +52,8 @@ tar_read(genus_plot)
 ```{r species-tbl}
 species_tbl <- tar_read(genus_species_freq)$species_freq
 knitr::kable(species_tbl,
-             caption = "Specimen counts per species (all taxa).") |>
+             caption = "Specimen counts per species (all taxa).",
+             digits = 3) |>
   kable_styling(full_width = FALSE) |>
   kable_classic()
 ```
@@ -71,7 +76,8 @@ span_tbl <- tar_read(temporal_span) |>
 
 ```{r spans-kable}
 knitr::kable(span_tbl,
-             caption = "First and last appearances by species (Ma).") |>
+             caption = "First and last appearances by species (Ma).",
+             digits = 3) |>
   kable_styling(latex_options = c("scale_down")) |>
   kable_classic()
 ```
@@ -88,7 +94,8 @@ Summaries report medians and 90% CIs.
 ```{r spans-mc-table}
 spans_mc_tbl <- tar_read(spans_mc)
 knitr::kable(spans_mc_tbl,
-             caption = "Species span medians with 90\\% credible intervals (Ma).") |>
+             caption = "Species span medians with 90\\% credible intervals (Ma).",
+             digits = 3) |>
   kable_styling(latex_options = c("scale_down")) |>
   kable_classic()
 ```
@@ -123,7 +130,8 @@ tar_read(overlap_mc_plot)
 ```{r bin-counts-mc-table}
 bin_counts_tbl <- tar_read(bin_counts_mc)
 knitr::kable(bin_counts_tbl,
-             caption = "Species richness per 0.1 Ma bin: median and 90\\% CI.") |>
+             caption = "Species richness per 0.1 Ma bin: median and 90\\% CI.",
+             digits = 3) |>
   kable_styling(latex_options = c("scale_down")) |>
   kable_classic()
 ```
@@ -141,7 +149,8 @@ Occurrences are clustered jointly in space–time using HDBSCAN on scaled `(lon,
 ```{r st-mix-tbl}
 st_mix <- tar_read(mixing_index_by_cluster)
 knitr::kable(st_mix,
-             caption = "Within‑cluster mixing index (temporal span in Ma).") |>
+             caption = "Within‑cluster mixing index (temporal span in Ma).",
+             digits = 3) |>
   kable_styling(full_width = FALSE) |>
   kable_classic()
 ```
@@ -154,7 +163,37 @@ Exported artefacts: per‑observation clusters (`st_clusters.csv`) and cluster�
 
 ---
 
-## 6 Sampling intensity caveat
+## 6 Lead–Lag in FAD/LAD by Country
+
+We compare each country’s first and last appearances (FAD/LAD) to the corresponding continent-level values for the same species. Values are computed over 1000 bootstrap draws from each occurrence’s date interval; we report medians and 95% CIs.
+
+```{r leadlag-tbl}
+leadlag_tbl <- tar_read(leadlag_country)
+knitr::kable(leadlag_tbl,
+             caption = "Delta FAD/Delta LAD by country relative to continent (medians with 95\\% CI).",
+             digits = 3) |>
+  kable_styling(latex_options = c("scale_down")) |>
+  kable_classic()
+```
+
+```{r leadlag-ranks}
+leadlag_ranks <- tar_read(leadlag_ranks)
+knitr::kable(leadlag_ranks,
+             caption = "Country rankings by Delta FAD and Delta LAD (ascending; ties share ranks).",
+             digits = 3) |>
+  kable_styling(latex_options = c("scale_down")) |>
+  kable_classic()
+```
+
+```{r leadlag-maps, fig.cap="Lead–lag choropleths (Delta FAD) for selected species"}
+map_paths <- tar_read(leadlag_maps)$path
+to_show <- head(map_paths, 3)
+knitr::include_graphics(to_show)
+```
+
+---
+
+## 7 Sampling intensity caveat
 
 The pipeline collapses fragments to uniques but records a `sampling_intensity` count.  
 Where sampling is sparse (low counts or long hiatuses), absences may reflect fossilisation and recovery bias rather than true local extirpation.  
@@ -162,7 +201,7 @@ Upcoming occupancy models will incorporate this intensity as a detection covaria
 
 ---
 
-## 7 Re-occupancy gaps (Poisson)
+## 8 Re-occupancy gaps (Poisson)
 
 We model detection at each site as an inhomogeneous Poisson process with a rate that tracks local sampling intensity through time. For each observed hiatus between finds at a site, we compute the probability of seeing no finds under the model and flag unexpectedly long gaps after FDR correction.
 
@@ -178,7 +217,8 @@ tar_read(reocc_pvals_plot)
 ```{r reocc-likely}
 if (nrow(likely_tbl) > 0) {
   knitr::kable(likely_tbl,
-               caption = "Likely re-occupancy events (FDR < 0.05), ordered by adjusted p-value.") |>
+               caption = "Likely re-occupancy events (FDR < 0.05), ordered by adjusted p-value.",
+               digits = 3) |>
     kable_styling(full_width = FALSE) |>
     kable_classic()
 } else {
@@ -190,7 +230,7 @@ Exported artefacts (see outputs/): site-level lambda per bin (`site_lambda.csv`)
 
 ---
 
-## 8 Next steps
+## 9 Next steps
 
 1. Implement Solow’s **OLE** to estimate continental extinction probabilities.  
 2. Fit hierarchical occupancy models at key sites (e.g., Olduvai Gorge) integrating `sampling_intensity`.  

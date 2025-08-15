@@ -30,10 +30,13 @@ import::here(country_intensity, estimate_site_lambda, compute_reocc_pvals,
              likely_reoccupancy, plot_reocc_pvals, .from = "R/reoccupancy.R")
 import::here(st_cluster, mixing_index_from_st, plot_mixing_index,
              .from = "R/st_cluster.R")
+import::here(fad_lad_leadlag, fad_lad_rankings, plot_leadlag_choropleth,
+             write_leadlag_maps, .from = "R/leadlag.R")
 
 tar_option_set(
   packages = c("dplyr", "tidyr", "here", "readr", "tibble", "purrr", 
-               "ggplot2", "forcats", "scales", "kableExtra", "dbscan"),
+               "ggplot2", "forcats", "scales", "kableExtra", "dbscan",
+               "countrycode", "rnaturalearth", "sf"),
   format   = "rds"
 )
 
@@ -298,6 +301,38 @@ list(
     format = "file"
   ),
   # -----------------------------------------------------------------------------
+  # 4c. LEAD–LAG ANALYSIS (ΔFAD/ΔLAD by country vs continent)
+  # Purpose: detect proto-colonization signals by comparing per-country FAD/LAD
+  #          to continent-level FAD/LAD via bootstrap over date intervals.
+  # Outputs: summary table, ranked deltas, and per-species choropleths.
+  # -----------------------------------------------------------------------------
+  # ΔFAD/ΔLAD summary per country and species (exclude indeterminates)
+  tar_target(
+    leadlag_country,
+    fad_lad_leadlag(occ_tbl_no_indet, B = 1000, dist = "uniform", tol = 1e-3, lead_is_negative = FALSE)
+  ),
+  # CSV export of lead–lag summary
+  tar_target(
+    leadlag_country_csv,
+    write_output(leadlag_country, "leadlag_country.csv"),
+    format = "file"
+  ),
+  # Rankings by species
+  tar_target(
+    leadlag_ranks,
+    fad_lad_rankings(leadlag_country)
+  ),
+  tar_target(
+    leadlag_ranks_csv,
+    write_output(leadlag_ranks, "leadlag_ranks.csv"),
+    format = "file"
+  ),
+  # Choropleth PNGs per species (ΔFAD by default); returns tibble of file paths.
+  tar_target(
+    leadlag_maps,
+    write_leadlag_maps(leadlag_country, metric = "delta_fad_median")
+  ),
+  # -----------------------------------------------------------------------------
   # 5. SITE OCCUPANCY GAPS (inhomogeneous Poisson)
   # Purpose: quantify re‑occupancy plausibility using site‑specific lambda(t)
   #          scaled from country‑level intensity. Sites = clusters; rows with
@@ -365,7 +400,8 @@ list(
         span_plot_file, span_mc_plot_file, overlap_plot_file,
         overlap_mc_plot_file, bin_counts_plot_file, site_lambda,
         site_lambda_csv, reocc_pvals_csv, country_intensity_bins,
-        likely_reoccupancy_events_csv, reocc_pvals_plot
+        likely_reoccupancy_events_csv, reocc_pvals_plot,
+        leadlag_country_csv, leadlag_ranks_csv, leadlag_maps
       )
       quarto::quarto_render("report.qmd", output_format = "pdf")
       "report.pdf"

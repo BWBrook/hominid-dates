@@ -274,7 +274,7 @@ plot_reocc_pvals <- function(reocc_tbl) {
     ggplot(aes(x = delta, y = p_value, color = sig)) +
     geom_point(alpha = 0.7) +
     scale_y_log10() +
-    labs(x = "Gap duration Δ (Ma)", y = "P(no finds)", color = "FDR < 0.05",
+    labs(x = "Gap duration (Ma)", y = "P(no finds)", color = "FDR < 0.05",
          title = "Gap-wise P(no finds) vs duration") +
     theme_minimal()
 }

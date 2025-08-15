@@ -33,17 +33,37 @@ bin_counts_mc_csv|stem|380fed039ff383b8|18c3c78d0d25f6b7|d6b7147db682ffe3|113132
 overlap_mc_plot_file|stem|613011800d19ba46|4357f8729321bd3e|f087bb9178adf3e4|-97474587|C:/git/hominid-dates/outputs/overlap_heatmap_mc.png|t20313.5887025635s|s100822b|100822|file|local|vector|||0.28||
 span_mc_plot_file|stem|222aeb3a0f076eda|8c0c25b922fd03ed|e2874e9ce681b487|639659051|C:/git/hominid-dates/outputs/temporal_span_mc.png|t20313.5887073078s|s48677b|48677|file|local|vector|||0.37||
 bin_counts_plot_file|stem|9597efe02adcf44d|b97ad1d14fe0cb53|63e1b4b44b7660de|2072532886|C:/git/hominid-dates/outputs/bin_counts_mc.png|t20313.5887099666s|s42443b|42443|file|local|vector|||0.19||
+st_clusters|stem|b3f900f6d6457a26|dd56146525df0f39|f6985b54e891753a|-1462943525||t20315.2059502809s|s7823b|7823|rds|local|vector|||0.02|st_cluster: 112/352 points unassigned (noise)|
+site_lambda|stem|a64280e6b39ecc7e|252b9cd851caa116|13716bb2130ec039|-506514720||t20315.2059521447s|s212b|212|rds|local|vector|||0.09|estimate_site_lambda: dropping 58 rows with NA cluster_id|
+st_clusters_csv|stem|3b8f8a93200302ca|cabae76108d3095d|e7cf6ad31ede7bdb|-693908792|C:/git/hominid-dates/outputs/st_clusters.csv|t20315.2059585694s|s26278b|26278|file|local|vector|||0.51||
+mixing_index_by_cluster|stem|4bd4f6093fa103a3|6a6c32176683a830|615ad40f7dd5b478|142988848||t20315.2059591501s|s827b|827|rds|local|vector|||0.02||
+country_intensity_bins|stem|05461d95d379838d|636c10b39e2c4ff0|dea619f9b3e531d1|-1874299449||t20315.205960259s|s491b|491|rds|local|vector|||0.08||
+reocc_pvals|stem|8e8d3426c908d3ee|4a0cc6ec3d4729c3|ec07df0ada0546fc|-873508009||t20315.2059621361s|s1068b|1068|rds|local|vector|||0.14|compute_reocc_pvals: dropping 58 rows with NA cluster_id|
+site_lambda_csv|stem|ccbc8a8002c087d6|ca0c23257bb33b73|9a57309ce0a0bfa1|2039021440|C:/git/hominid-dates/outputs/site_lambda.csv|t20315.2059626895s|s86b|86|file|local|vector|||0.03||
+mixing_index_by_cluster_csv|stem|58c6224f25a1d926|4cf866b23ad670e0|6b08c55d259386c3|1472504099|C:/git/hominid-dates/outputs/mixing_index_by_cluster.csv|t20315.2059641896s|s1275b|1275|file|local|vector|||0.04||
+likely_reoccupancy_events|stem|5e99b916fd8276d3|2aa176ff21959b1c|1b29167513e58e8f|-1590970371||t20315.2059658691s|s244b|244|rds|local|vector|||0.02||
+reocc_pvals_csv|stem|0cc34f8f106bdeab|dc7962d742be3710|d2737f8c8f981635|-2124393822|C:/git/hominid-dates/outputs/reocc_pvals.csv|t20315.2059666047s|s3508b|3508|file|local|vector|||0.05||
+likely_reoccupancy_events_csv|stem|ab375652a3133131|8234ac6de62dfb51|6d1613f4d377ac8d|724554919|C:/git/hominid-dates/outputs/likely_reoccupancy_events.csv|t20315.2059739995s|s139b|139|file|local|vector|||0.02||
+leadlag_country|stem|46871ca95c5d6918|2743c92e7288a004|bdc901dcfa287d7b|1192626606||t20315.2322501652s|s1028b|1028|rds|local|vector|||47.32||
+leadlag_country_csv|stem|c4f8c97b0a0089d6|8c6d41af970038ab|772389be37703cbd|-1687485183|C:/git/hominid-dates/outputs/leadlag_country.csv|t20315.2322567742s|s2131b|2131|file|local|vector|||0.5||
+leadlag_ranks|stem|5b24fb8be6177b6c|396b18822105fc11|3faf757b5c9688d2|-213768907||t20315.2322579414s|s647b|647|rds|local|vector|||0.03||
+leadlag_ranks_csv|stem|ecbb21ae69156ac1|e5330cc420faabaf|71de0862e6791d03|52164699|C:/git/hominid-dates/outputs/leadlag_ranks.csv|t20315.2324112179s|s1254b|1254|file|local|vector|||0.01||
+mixing_index_plot|stem|af626b3e76fabcc4|2491d17a6e08f535|68d004c217ce4517|-865509458||t20315.2582970575s|s91087b|91087|rds|local|vector|||0.03||
+leadlag_maps|stem|f7f66182e75097cd|8a8637d2fe0c12b7|e2b6a3f3f1d1ace5|1161294951||t20315.2584181967s|s367b|367|rds|local|vector|||10.39||
+reocc_pvals_plot|stem|895df27a0216ee42|50f0a60cb0a7abfa|cd17aa23ee9b0b16|-1808219936||t20315.2584200295s|s156903b|156903|rds|local|vector|||0.01||
+mixing_index_plot_file|stem|f5e3f83dd9d2732f|1cde5cbdc09ed39e|b272524a9b46c8a0|-214403274|C:/git/hominid-dates/outputs/mixing_index_by_cluster.png|t20315.2584259687s|s41909b|41909|file|local|vector|||0.48||
 summarise_freq|function|b546fbfc73c58b2d
 plot_overlap_heatmap|function|e6c11b49d0f38072
 bin_counts_from_draws|function|3eba38b11f409116
 summarise_spans|function|af4fb74f30578fa2
 mc_dates|function|8c08415a345e6c39
 spans_from_draws|function|5a8c20aa1d3c0870
-.Random.seed|object|67956e83f743c0f7
+.Random.seed|object|fcebc199fb3185e8
 plot_spans_ci|function|40febba8f00d18db
 write_plot|function|a2531d48c8278618
 filter_indet|function|e7fa133b66c782c3
 country_intensity|function|20d5707009eea453
+plot_leadlag_choropleth|function|ae7014ddc004adb2
 st_cluster|function|838542dc311a271d
 plot_species_freq|function|432223098886f054
 plot_bin_counts_mc|function|77e7722fd993a185
@@ -52,29 +72,18 @@ mixing_index_from_st|function|6479c20a0a7ae846
 plot_genus_freq|function|492b21f528abca29
 write_output|function|10e83a50b006ad34
 read_hominid|function|9a43cb9eb00889f0
+fad_lad_rankings|function|d16ada3e0fa994f3
 compute_reocc_pvals|function|6e6a63f44aaccb1f
-plot_mixing_index|function|f0df80e67fb51aa5
 plot_temporal_span|function|94928b91911d1823
+plot_mixing_index|function|0c0275d3114b80c7
 overlap_from_draws|function|91f21fec95d6afaa
 collapse_fragments|function|486700b99d969df2
 likely_reoccupancy|function|2659de1d075582c2
-plot_reocc_pvals|function|c32398cc8314564c
+plot_reocc_pvals|function|9faed695b346ea04
 plot_overlap_heatmap_mc|function|0b1d052dbff9eaf1
+fad_lad_leadlag|function|4e4bc51b76dbb41a
 bin_sensitivity|function|4ceb7eab85f09192
 mc_ci_convergence|function|66d8dbd02351fbd0
 estimate_site_lambda|function|d9453b1c8a77965a
-st_clusters|stem|b3f900f6d6457a26|dd56146525df0f39|f6985b54e891753a|-1462943525||t20315.2059502809s|s7823b|7823|rds|local|vector|||0.02|st_cluster: 112/352 points unassigned (noise)|
-site_lambda|stem|a64280e6b39ecc7e|252b9cd851caa116|13716bb2130ec039|-506514720||t20315.2059521447s|s212b|212|rds|local|vector|||0.09|estimate_site_lambda: dropping 58 rows with NA cluster_id|
-st_clusters_csv|stem|3b8f8a93200302ca|cabae76108d3095d|e7cf6ad31ede7bdb|-693908792|C:/git/hominid-dates/outputs/st_clusters.csv|t20315.2059585694s|s26278b|26278|file|local|vector|||0.51||
-mixing_index_by_cluster|stem|4bd4f6093fa103a3|6a6c32176683a830|615ad40f7dd5b478|142988848||t20315.2059591501s|s827b|827|rds|local|vector|||0.02||
-country_intensity_bins|stem|05461d95d379838d|636c10b39e2c4ff0|dea619f9b3e531d1|-1874299449||t20315.205960259s|s491b|491|rds|local|vector|||0.08||
-reocc_pvals|stem|8e8d3426c908d3ee|4a0cc6ec3d4729c3|ec07df0ada0546fc|-873508009||t20315.2059621361s|s1068b|1068|rds|local|vector|||0.14|compute_reocc_pvals: dropping 58 rows with NA cluster_id|
-site_lambda_csv|stem|ccbc8a8002c087d6|ca0c23257bb33b73|9a57309ce0a0bfa1|2039021440|C:/git/hominid-dates/outputs/site_lambda.csv|t20315.2059626895s|s86b|86|file|local|vector|||0.03||
-mixing_index_plot|stem|7cce792d4697f1d0|2491d17a6e08f535|4ec7038db3b84767|-865509458||t20315.2059635005s|s91092b|91092|rds|local|vector|||0.01||
-mixing_index_by_cluster_csv|stem|58c6224f25a1d926|4cf866b23ad670e0|6b08c55d259386c3|1472504099|C:/git/hominid-dates/outputs/mixing_index_by_cluster.csv|t20315.2059641896s|s1275b|1275|file|local|vector|||0.04||
-reocc_pvals_plot|stem|db382b7a1c026070|50f0a60cb0a7abfa|63ad62bf3ad5e57e|-1808219936||t20315.2059655037s|s158276b|158276|rds|local|vector|||0.01||
-likely_reoccupancy_events|stem|5e99b916fd8276d3|2aa176ff21959b1c|1b29167513e58e8f|-1590970371||t20315.2059658691s|s244b|244|rds|local|vector|||0.02||
-reocc_pvals_csv|stem|0cc34f8f106bdeab|dc7962d742be3710|d2737f8c8f981635|-2124393822|C:/git/hominid-dates/outputs/reocc_pvals.csv|t20315.2059666047s|s3508b|3508|file|local|vector|||0.05||
-mixing_index_plot_file|stem|cfc6bba351d4f441|1cde5cbdc09ed39e|33f88a178c7659bf|-214403274|C:/git/hominid-dates/outputs/mixing_index_by_cluster.png|t20315.2059731759s|s41099b|41099|file|local|vector|||0.53||
-likely_reoccupancy_events_csv|stem|ab375652a3133131|8234ac6de62dfb51|6d1613f4d377ac8d|724554919|C:/git/hominid-dates/outputs/likely_reoccupancy_events.csv|t20315.2059739995s|s139b|139|file|local|vector|||0.02||
-pdf_report|stem|34718571bb4f8afb|3121c5eb05d9b18a|59918001af9316f4|1098811943|report.pdf|t20315.2062062105s|s91061b|91061|file|local|vector|||20.15||
+write_leadlag_maps|function|ddb13b898e0f71cf
+pdf_report|stem|0b49bf83a64b1132|7dee99808b1fcc78|0be1e79f67a381b9|1098811943|report.pdf|t20315.2602516361s|s459347b|459347|file|local|vector|||23.06||
