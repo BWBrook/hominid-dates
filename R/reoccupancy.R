@@ -13,7 +13,7 @@
 #'  - Binning is left-closed, right-open: [start, end).
 #'
 
-#' Create a stable site identifier by rounded lat/lon
+#' Create a stable site identifier by rounded lat/lon (fallback when no clusters)
 #' @keywords internal
 make_site_id <- function(lat, lon, digits = 3) {
   paste0(
@@ -102,8 +102,22 @@ estimate_site_lambda <- function(occ_tbl, width = 0.1) {
   }
 
   occ_sites <- occ_tbl |>
-    filter(!is.na(lat), !is.na(lon), !is.na(country), !is.na(date)) |>
-    mutate(site_id = make_site_id(lat, lon))
+    filter(!is.na(lat), !is.na(lon), !is.na(country), !is.na(date))
+
+  # Prefer cluster_id if present; otherwise fall back to rounded lat/lon
+  if ("cluster_id" %in% names(occ_sites)) {
+    # Use clusters as sites; drop rows with NA cluster_id
+    n_na <- sum(is.na(occ_sites$cluster_id))
+    if (n_na > 0) {
+      warning(sprintf("estimate_site_lambda: dropping %d rows with NA cluster_id", n_na))
+    }
+    occ_sites <- occ_sites |>
+      filter(!is.na(cluster_id)) |>
+      mutate(site_id = paste0("c", cluster_id))
+  } else {
+    occ_sites <- occ_sites |>
+      mutate(site_id = make_site_id(lat, lon))
+  }
 
   # country intensity grid
   cint <- country_intensity(occ_sites, width)
@@ -163,8 +177,22 @@ compute_reocc_pvals <- function(occ_tbl, site_lambda_tbl) {
   }
 
   occ_sites <- occ_tbl |>
-    filter(!is.na(lat), !is.na(lon), !is.na(date)) |>
-    mutate(site_id = make_site_id(lat, lon)) |>
+    filter(!is.na(lat), !is.na(lon), !is.na(date))
+
+  if ("cluster_id" %in% names(occ_sites)) {
+    n_na <- sum(is.na(occ_sites$cluster_id))
+    if (n_na > 0) {
+      warning(sprintf("compute_reocc_pvals: dropping %d rows with NA cluster_id", n_na))
+    }
+    occ_sites <- occ_sites |>
+      filter(!is.na(cluster_id)) |>
+      mutate(site_id = paste0("c", cluster_id))
+  } else {
+    occ_sites <- occ_sites |>
+      mutate(site_id = make_site_id(lat, lon))
+  }
+
+  occ_sites <- occ_sites |>
     select(site_id, date)
 
   # gaps per site

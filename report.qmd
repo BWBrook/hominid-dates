@@ -134,7 +134,27 @@ tar_read(bin_counts_plot)
 
 ---
 
-## 5 Sampling intensity caveat
+## 5 Site clusters (HDBSCAN)
+
+Occurrences are clustered jointly in space–time using HDBSCAN on scaled `(lon, lat, date)` coordinates. Each observation receives a `cluster_id` (or `NA` if treated as noise). For each cluster, the within‑cluster temporal span serves as a simple "mixing index".
+
+```{r st-mix-tbl}
+st_mix <- tar_read(mixing_index_by_cluster)
+knitr::kable(st_mix,
+             caption = "Within‑cluster mixing index (temporal span in Ma).") |>
+  kable_styling(full_width = FALSE) |>
+  kable_classic()
+```
+
+```{r st-mix-plot, fig.cap="Within‑cluster temporal mixing index by cluster"}
+tar_read(mixing_index_plot)
+```
+
+Exported artefacts: per‑observation clusters (`st_clusters.csv`) and cluster‑level mixing indices (`mixing_index_by_cluster.csv`).
+
+---
+
+## 6 Sampling intensity caveat
 
 The pipeline collapses fragments to uniques but records a `sampling_intensity` count.  
 Where sampling is sparse (low counts or long hiatuses), absences may reflect fossilisation and recovery bias rather than true local extirpation.  
@@ -142,7 +162,7 @@ Upcoming occupancy models will incorporate this intensity as a detection covaria
 
 ---
 
-## 6 Re-occupancy gaps (Poisson)
+## 7 Re-occupancy gaps (Poisson)
 
 We model detection at each site as an inhomogeneous Poisson process with a rate that tracks local sampling intensity through time. For each observed hiatus between finds at a site, we compute the probability of seeing no finds under the model and flag unexpectedly long gaps after FDR correction.
 
@@ -170,7 +190,7 @@ Exported artefacts (see outputs/): site-level lambda per bin (`site_lambda.csv`)
 
 ---
 
-## 7 Next steps
+## 8 Next steps
 
 1. Implement Solow’s **OLE** to estimate continental extinction probabilities.  
 2. Fit hierarchical occupancy models at key sites (e.g., Olduvai Gorge) integrating `sampling_intensity`.  

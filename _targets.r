@@ -28,15 +28,21 @@ import::here(plot_spans_ci, plot_overlap_heatmap_mc,
              plot_bin_counts_mc,    .from = "R/plot_mc.R")
 import::here(country_intensity, estimate_site_lambda, compute_reocc_pvals,
              likely_reoccupancy, plot_reocc_pvals, .from = "R/reoccupancy.R")
+import::here(st_cluster, mixing_index_from_st, plot_mixing_index,
+             .from = "R/st_cluster.R")
 
 tar_option_set(
   packages = c("dplyr", "tidyr", "here", "readr", "tibble", "purrr", 
-               "ggplot2", "forcats", "scales", "kableExtra"),
+               "ggplot2", "forcats", "scales", "kableExtra", "dbscan"),
   format   = "rds"
 )
 
 list(
-  # 1 raw data ---------------------------------------------------------------------
+  # -----------------------------------------------------------------------------
+  # 1. RAW DATA INGEST
+  # Purpose: establish a single typed source of truth from CSV.
+  # Why first: all downstream steps derive from the canonical input table.
+  # -----------------------------------------------------------------------------
   # Path to the cleaned input CSV file.
   tar_target(
     raw_csv,
@@ -48,19 +54,71 @@ list(
     raw_tbl,
     read_hominid(raw_csv)
   ),
-  # 2 deduplicate fragments --------------------------------------------------------
+  # -----------------------------------------------------------------------------
+  # 2. OCCURRENCE NORMALISATION
+  # Purpose: collapse duplicate fragments into unique occurrences while
+  #          recording sampling_intensity as an effort covariate.
+  # Why here: creates the base occurrence table used by both summaries and
+  #           clustering; keeps spatial and temporal fields intact.
+  # -----------------------------------------------------------------------------
   # Collapse duplicate fragments to unique occurrences; add sampling_intensity.
   tar_target(
     occ_tbl,
     collapse_fragments(raw_tbl)
   ),
-  # 2b drop indeterminates ----
-  # Remove rows with indeterminate species assignments.
+  # 2b SPATIO‑TEMPORAL CLUSTERING (site definition)
+  # Purpose: define robust site clusters in joint (lon, lat, date) space
+  #          using HDBSCAN; label noise as NA cluster_id.
+  # Why now: site clusters are consumed by downstream re‑occupancy analysis;
+  #          summaries still operate on species‑filtered occurrences.
+  # Tuning: minPts controls minimum cluster size; date_weight downweights time.
+  # -----------------------------------------------------------------------------
+  # Cluster occurrences in (lon, lat, date) space; add cluster_id and sort.
+  tar_target(
+    st_clusters,
+    st_cluster(occ_tbl, minPts = 4, date_weight = 0.5)
+  ),
+  # CSV export: per-observation clusters (sorted; NA cluster_id last).
+  tar_target(
+    st_clusters_csv,
+    write_output(st_clusters, "st_clusters.csv"),
+    format = "file"
+  ),
+  # Derived: cluster-wise mixing index (temporal span).
+  tar_target(
+    mixing_index_by_cluster,
+    mixing_index_from_st(st_clusters)
+  ),
+  # CSV export: mixing index per cluster.
+  tar_target(
+    mixing_index_by_cluster_csv,
+    write_output(mixing_index_by_cluster, "mixing_index_by_cluster.csv"),
+    format = "file"
+  ),
+  # Plot: mixing index lollipop and PNG export.
+  tar_target(
+    mixing_index_plot,
+    plot_mixing_index(mixing_index_by_cluster)
+  ),
+  tar_target(
+    mixing_index_plot_file,
+    write_plot(mixing_index_plot, "mixing_index_by_cluster.png"),
+    format = "file"
+  ),
+  # 2c DROP INDETERMINATES
+  # Purpose: remove species == "indet" for taxonomic summaries and MC steps.
+  # Note: re‑occupancy uses clusters + filter_indet() at call sites below.
+  # -----------------------------------------------------------------------------
   tar_target(
     occ_tbl_no_indet,
     filter_indet(occ_tbl)
   ),
-  # 3 summaries --------------------------------------------------------------------
+  # -----------------------------------------------------------------------------
+  # 3. SUMMARIES (point estimates)
+  # Purpose: count specimens and derive first/last appearances by species.
+  # Why after filtering: taxonomic summaries exclude indeterminate rows.
+  # Dependencies: occ_tbl_no_indet → temporal_span → overlap_matrix.
+  # -----------------------------------------------------------------------------
   # Specimen counts by genus and species (weighting by sampling_intensity).
   tar_target(
     genus_species_freq,
@@ -76,7 +134,12 @@ list(
     overlap_matrix,
     calc_overlap(temporal_span)
   ),
-  # 3b Monte Carlo uncertainty propagation ---------------------------------
+  # -----------------------------------------------------------------------------
+  # 3b. UNCERTAINTY VIA MONTE CARLO
+  # Purpose: propagate date interval uncertainty into species spans, overlaps,
+  #          and bin richness. Draws are Uniform over [lower, upper].
+  # Dependencies: occ_tbl_no_indet → mc_draws → spans_mc/overlap_mc/bin_counts_mc.
+  # -----------------------------------------------------------------------------
   # Monte Carlo draws of latent dates per occurrence (Uniform over [lower, upper]).
   tar_target(
     mc_draws,
@@ -97,8 +160,7 @@ list(
     bin_counts_mc,
     bin_counts_from_draws(mc_draws, bin_width = 0.1)
   ),
-  # optional sensitivity -----------------------------------------------------
-  # Sensitivity of bin counts to sampling distribution (Uniform/Triangular/Beta).
+  # Optional: sensitivity of bin counts to sampling distribution.
   tar_target(
     bin_sense,
     bin_sensitivity(occ_tbl_no_indet, B = 1000, bin_width = 0.1)
@@ -108,7 +170,10 @@ list(
     mc_conv,
     mc_ci_convergence(occ_tbl_no_indet, B_grid = c(200, 500, 1000, 2000), dist = "uniform")
   ),
-  # 4 write artefacts to /outputs --------------------------------------------------
+  # -----------------------------------------------------------------------------
+  # 4. WRITE TABLE ARTEFACTS TO /outputs
+  # Purpose: materialise CSVs required by the report and external consumers.
+  # -----------------------------------------------------------------------------
   # Write genus frequency table to CSV.
   tar_target(
     genus_freq_csv,
@@ -151,7 +216,10 @@ list(
     write_output(bin_counts_mc, "bin_counts_mc_ci.csv"),
     format = "file"
   ),
-  # ---- plotting targets ----------------------------------------------------------
+  # -----------------------------------------------------------------------------
+  # 4b. PLOTTING TARGETS (PNG to /outputs)
+  # Purpose: visual summaries used in the report.
+  # -----------------------------------------------------------------------------
   # Bar plot of specimen counts per genus.
   tar_target(
     genus_plot,
@@ -229,16 +297,23 @@ list(
     write_plot(bin_counts_plot, "bin_counts_mc.png", width = 7, height = 4),
     format = "file"
   ),
-  # 5 site occupancy gaps ---------------------------------------------------------
+  # -----------------------------------------------------------------------------
+  # 5. SITE OCCUPANCY GAPS (inhomogeneous Poisson)
+  # Purpose: quantify re‑occupancy plausibility using site‑specific lambda(t)
+  #          scaled from country‑level intensity. Sites = clusters; rows with
+  #          NA cluster_id are excluded by design from this analysis.
+  # Dependencies: st_clusters + filter_indet() → country_intensity → site_lambda
+  #               → reocc_pvals → likely_reoccupancy_events.
+  # -----------------------------------------------------------------------------
   # Country-level sampling intensity per 0.1 Ma bin (proxy for effort).
   tar_target(
     country_intensity_bins,
-    country_intensity(occ_tbl_no_indet, width = 0.1)
+    country_intensity(st_clusters |> filter_indet(), width = 0.1)
   ),
   # Site-specific lambda(t) scaled to observed site counts.
   tar_target(
     site_lambda,
-    estimate_site_lambda(occ_tbl_no_indet, width = 0.1)
+    estimate_site_lambda(st_clusters |> filter_indet(), width = 0.1)
   ),
   # CSV export: site_lambda per bin (retain NA + comment column).
   tar_target(
@@ -249,7 +324,7 @@ list(
   # Gap-wise P(no finds) per site under inhomogeneous Poisson.
   tar_target(
     reocc_pvals,
-    compute_reocc_pvals(occ_tbl_no_indet, site_lambda)
+    compute_reocc_pvals(st_clusters |> filter_indet(), site_lambda)
   ),
   # CSV export: gap p-values ordered by ascending p-value.
   tar_target(
@@ -273,7 +348,11 @@ list(
     reocc_pvals_plot,
     plot_reocc_pvals(reocc_pvals)
   ),
-  # Save re-occupancy p-values plot to PNG.
+  # -----------------------------------------------------------------------------
+  # 6. REPORT RENDER
+  # Purpose: render the Quarto report after its dependencies are available.
+  # Note: explicit dependency list ensures {targets} schedules upstream builds.
+  # -----------------------------------------------------------------------------
   tar_target(
     pdf_report,
     {
@@ -281,7 +360,8 @@ list(
       deps <- list(
         genus_freq_csv, species_freq_csv, temporal_span_csv,
         overlap_matrix_csv, spans_mc_csv, overlap_mc_csv,
-        bin_counts_mc_csv, genus_plot_file, species_plot_file,
+        bin_counts_mc_csv, st_clusters_csv, mixing_index_by_cluster_csv,
+        mixing_index_plot_file, genus_plot_file, species_plot_file,
         span_plot_file, span_mc_plot_file, overlap_plot_file,
         overlap_mc_plot_file, bin_counts_plot_file, site_lambda,
         site_lambda_csv, reocc_pvals_csv, country_intensity_bins,
