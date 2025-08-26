@@ -12,7 +12,7 @@ project_dependencies <- function() {
     # plotting
     "ggplot2", "forcats", "scales", "kableExtra",
     # methods
-    "dbscan", "countrycode", "rnaturalearth", "sf",
+    "dbscan", "countrycode", "rnaturalearth", "sf", "betapart",
     # reporting
     "quarto",
     # messaging / errors / env

@@ -533,7 +533,33 @@ We collapse duplicate fragments to single occurrences but keep a `sampling_inten
 
 ---
 
-## 9 Re-occupancy gaps (Poisson)
+## 9 Temporal beta diversity at key localities
+
+We assess how species composition changes from one time bin to the next within selected site clusters. We decompose total beta diversity (Sørensen) into turnover (Simpson) and nestedness components using the Baselga partition.
+
+Selection criteria: clusters with ≥ 3 non‑empty bins and ≥ 3 species across the series; up to the top 6 by number of steps are shown.
+
+```{r beta-turnover-table}
+beta_tbl <- tar_read(beta_turnover_tbl)
+
+kableExtra::landscape(
+  knitr::kable(beta_tbl |> head(10),
+              caption = "Temporal beta diversity between successive bins at key localities (top 10 rows).",
+              digits = 3) |>
+    kable_styling(full_width = FALSE) |>
+    kable_classic()
+)  
+```
+
+```{r beta-turnover-plot, fig.cap="Temporal beta diversity components (turnover vs nestedness) per locality; thin grey lines = relative richness and effort."}
+tar_read(beta_turnover_plot)
+```
+
+Interpretation: Values near 1 indicate strong dissimilarity between adjacent bins; a larger turnover component points to species replacement, whereas nestedness indicates one bin’s composition is largely a subset of the other. Thin lines (richness and effort) provide context: high beta paired with low effort may reflect sparse sampling rather than ecological turnover.
+
+---
+
+## 10 Re-occupancy gaps (Poisson)
 
 We ask: given local sampling intensity through time, how surprising is a long gap between finds at a site? We use the intensity history to compute the probability of seeing no finds over each gap; very small probabilities suggest a true break in presence, not just missed sampling.
 

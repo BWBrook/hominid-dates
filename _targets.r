@@ -376,7 +376,36 @@ list(
     plot_reocc_pvals(reocc_pvals)
   ),
   # -----------------------------------------------------------------------------
-  # 6. REPORT RENDER
+  # 6. TEMPORAL BETA DIVERSITY (Baselga partition)
+  # -----------------------------------------------------------------------------
+  targets::tar_target(
+    incidence_by_cluster,
+    build_incidence_by_cluster(st_clusters |> filter_indet(), width = 0.25, top_k = 6, clusters = NULL)
+  ),
+  targets::tar_target(
+    key_localities,
+    incidence_by_cluster$key_localities
+  ),
+  targets::tar_target(
+    beta_turnover_tbl,
+    beta_turnover_by_cluster(incidence_by_cluster$incidence)
+  ),
+  targets::tar_target(
+    beta_turnover_csv,
+    write_output(beta_turnover_tbl, "beta_turnover.csv"),
+    format = "file"
+  ),
+  targets::tar_target(
+    beta_turnover_plot,
+    plot_beta_locality(beta_turnover_tbl, nmax = 6)
+  ),
+  targets::tar_target(
+    beta_turnover_plot_file,
+    write_plot(beta_turnover_plot, "beta_turnover.png", width = 10, height = 6),
+    format = "file"
+  ),
+  # -----------------------------------------------------------------------------
+  # 7. REPORT RENDER
   # Purpose: render the Quarto report after its dependencies are available.
   # Note: explicit dependency list ensures {targets} schedules upstream builds.
   # -----------------------------------------------------------------------------
@@ -394,7 +423,8 @@ list(
         site_lambda_csv, reocc_pvals_csv, country_intensity_bins,
         likely_reoccupancy_events_csv, reocc_pvals_plot,
         leadlag_country_csv, leadlag_ranks_csv, leadlag_maps,
-        range_metrics_csv, centroid_track_maps
+        range_metrics_csv, centroid_track_maps,
+        beta_turnover_csv, beta_turnover_plot_file
       )
       render_report()
     },

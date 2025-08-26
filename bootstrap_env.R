@@ -26,7 +26,8 @@ import::from("renv", init, install, snapshot, status)
 
 required_pkgs <- c(
   "targets", "import", "here", "readr", "dplyr",
-  "tidyr", "tibble", "purrr", "ggplot2", "scales"
+  "tidyr", "tibble", "purrr", "ggplot2", "scales",
+  "betapart"
 )
 
 # Bare‑bones renv project (no automatic snapshot) -------------------------------

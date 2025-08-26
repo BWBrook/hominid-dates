@@ -12,6 +12,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Linting config `.lintr` and `.Rbuildignore` entries.
 - Tests skeleton under `tests/testthat/` with sample data in `inst/extdata/`.
 - Report rendering helper `R/report.R` (renders to `docs/report.pdf`).
+ - Temporal beta diversity analysis: `build_incidence_by_cluster()`, `beta_turnover_by_cluster()` with plots and targets.
+ - Usage vignette `docs/USAGE.qmd` and pipeline target `usage_pdf` (renders to `docs/USAGE.pdf`).
  - Usage vignette `docs/USAGE.qmd` and pipeline target `usage_pdf` (renders to `docs/USAGE.pdf`).
 
 ### Changed
