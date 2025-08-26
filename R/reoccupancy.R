@@ -109,7 +109,7 @@ estimate_site_lambda <- function(occ_tbl, width = 0.1) {
     # Use clusters as sites; drop rows with NA cluster_id
     n_na <- sum(is.na(occ_sites$cluster_id))
     if (n_na > 0) {
-      warning(sprintf("estimate_site_lambda: dropping %d rows with NA cluster_id", n_na))
+      cli::cli_warn(sprintf("estimate_site_lambda: dropping %d rows with NA cluster_id", n_na))
     }
     occ_sites <- occ_sites |>
       filter(!is.na(cluster_id)) |>
@@ -131,7 +131,7 @@ estimate_site_lambda <- function(occ_tbl, width = 0.1) {
 
   # Join site windows to country intensity and restrict to window
   site_lambda <- site_windows |>
-    inner_join(cint, by = "country") |>
+    inner_join(cint, by = "country", relationship = "many-to-many") |>
     filter(time_bin_start >= t_min, time_bin_end <= t_max) |>
     group_by(site_id, country, t_min, t_max, n_occ) |>
     summarise(
@@ -143,7 +143,7 @@ estimate_site_lambda <- function(occ_tbl, width = 0.1) {
   # Expand per-bin lambdas
   out <- site_windows |>
     left_join(site_lambda |> select(site_id, alpha), by = "site_id") |>
-    inner_join(cint, by = "country") |>
+    inner_join(cint, by = "country", relationship = "many-to-many") |>
     filter(time_bin_start >= t_min, time_bin_end <= t_max) |>
     mutate(lambda = alpha * intensity,
            comment = ifelse(is.na(alpha), "intensity NA: insufficient data", NA_character_)) |>
@@ -169,6 +169,7 @@ compute_reocc_pvals <- function(occ_tbl, site_lambda_tbl) {
                filter, left_join, row_number, bind_rows)
   import::from("tibble", tibble)
   import::from("purrr", map_dfr)
+  import::from("cli", cli_warn)
 
   if (nrow(occ_tbl) == 0) {
     return(tibble(site_id = character(), gap_start = numeric(), gap_end = numeric(),
@@ -182,7 +183,7 @@ compute_reocc_pvals <- function(occ_tbl, site_lambda_tbl) {
   if ("cluster_id" %in% names(occ_sites)) {
     n_na <- sum(is.na(occ_sites$cluster_id))
     if (n_na > 0) {
-      warning(sprintf("compute_reocc_pvals: dropping %d rows with NA cluster_id", n_na))
+      cli_warn(sprintf("compute_reocc_pvals: dropping %d rows with NA cluster_id", n_na))
     }
     occ_sites <- occ_sites |>
       filter(!is.na(cluster_id)) |>

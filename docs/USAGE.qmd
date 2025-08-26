@@ -1,0 +1,105 @@
+---
+title: "Usage — Hominid Dates"
+format: gfm
+execute:
+  echo: true
+  warning: false
+  message: false
+execute-dir: project
+---
+
+```{r setup}
+import::from("targets", tar_read)
+import::from("here", here)
+
+# Ensure tar_read() uses project store regardless of working directory
+tar_read <- function(name, ...) {
+  nm <- as.character(substitute(name))
+  targets::tar_read_raw(name = nm, store = here("_targets"), ...)
+}
+```
+
+## Setup
+
+Run these once per machine to reproduce the environment.
+
+```r
+renv::restore(prompt = FALSE)
+source("dependencies.R")
+pak::pkg_install(project_dependencies())
+```
+
+## Build the pipeline
+
+Build everything (run this in the RStudio Console):
+
+```r
+targets::tar_make()
+```
+
+See the DAG:
+
+```r
+targets::tar_visnetwork()
+```
+
+## Read selected results
+
+Genus/species counts:
+
+```r
+freq <- tar_read(genus_species_freq)
+head(freq$genus_freq)
+head(freq$species_freq)
+```
+
+Temporal spans and overlap:
+
+```r
+spans <- tar_read(temporal_span)
+head(spans)
+
+ov <- tar_read(overlap_matrix)
+head(ov)
+```
+
+Monte Carlo summaries:
+
+```r
+spans_mc <- tar_read(spans_mc)
+head(spans_mc)
+
+overlap_mc <- tar_read(overlap_mc)
+head(overlap_mc)
+```
+
+Plots (objects print to the Viewer):
+
+```r
+tar_read(genus_plot)
+tar_read(span_plot)
+tar_read(overlap_plot)
+```
+
+## Exported files
+
+CSV and PNG artefacts are written under `outputs/`. Example:
+
+```r
+readr::read_csv(here("outputs", "genus_freq.csv"), show_col_types = FALSE) |> head()
+```
+
+## Report
+
+The Quarto report source is at `docs/report.qmd`. To render all docs:
+
+```bash
+quarto render docs/
+```
+
+## Troubleshooting
+
+- Validate pipeline: `targets::tar_validate()`.
+- Run tests: `testthat::test_dir("tests/testthat", reporter = "summary")`.
+- Re-run a specific target: `targets::tar_make(names = "genus_species_freq")`.
+

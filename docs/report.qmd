@@ -16,12 +16,21 @@ execute:
   echo: false
   warning: false
   message: false
+execute-dir: project
 ---
 
 ```{r setup}
 import::from("targets", tar_read)
-import::from("dplyr", mutate, arrange)
+import::from("dplyr", mutate, arrange, desc)
 import::from("kableExtra", kable_styling, kable_classic, landscape)
+import::from("here", here)
+
+# Ensure tar_read() sees the project store regardless of working directory.
+# Forward the unevaluated symbol as a character to tar_read_raw().
+tar_read <- function(name, ...) {
+  nm <- as.character(substitute(name))
+  targets::tar_read_raw(name = nm, store = here("_targets"), ...)
+}
 ```
 
 ## Overview
@@ -35,7 +44,7 @@ How to read this report:
 - Uncertainty: Some figures show a “90% interval.” This is the central range of plausible values after accounting for dating uncertainty; think of it as “where most of the evidence points,” not a hard bound.
 - Takeaways: After each table or figure, we include a short, plain‑language interpretation of what to look for and why it matters.
 
-Full reproducible workflow is available in the project GitHub repository (https://github.com/BWBrook/hominid-dates).  
+Full reproducible workflow is available in the project GitHub repository (https://github.com/BWBrook/hominid-dates).
 The emphasis here is on clear visuals and practical interpretation.
 
 ---
@@ -198,8 +207,6 @@ How to read the heat‑map:
 
 - Darker/lighter colours indicate less/more overlap in Ma.
 - The diagonal is blank because a species overlaps itself by definition.
-- Near‑zero overlap may mean genuine turnover or simply gaps in sampling.
-
 ```{r overlap-heatmap, fig.cap="Pairwise temporal overlap (Ma)"}
 tar_read(overlap_plot)
 ```
@@ -562,6 +569,6 @@ Takeaways:
 
 ## 10 Next steps
 
-1. Implement Solow’s **OLE** to estimate continental extinction probabilities.  
-2. Fit hierarchical occupancy models at key sites (e.g., Olduvai Gorge) integrating `sampling_intensity`.  
+1. Implement Solow’s **OLE** to estimate continental extinction probabilities.
+2. Fit hierarchical occupancy models at key sites (e.g., Olduvai Gorge) integrating `sampling_intensity`.
 3. Visualise spatio‑temporal colonisation fronts via animated maps.

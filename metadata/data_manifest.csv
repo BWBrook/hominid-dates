@@ -1,0 +1,12 @@
+field,name,description,example
+id,character,Unique specimen identifier,H12345
+genus,character,Genus name,Australopithecus
+species,character,Species or 'indet',a_afarensis
+country,character,Country name,Ethiopia
+lat,double,Latitude in decimal degrees,-3.123
+lon,double,Longitude in decimal degrees,35.456
+date,double,Point estimate (Ma) if present,3.2
+upper,double,Upper bound of date interval (Ma),3.4
+lower,double,Lower bound of date interval (Ma),3.0
+sampling_intensity,integer,Count of fragments collapsed into occurrence,2
+cluster_id,integer,Site cluster identifier (NA for noise),1

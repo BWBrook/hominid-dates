@@ -1,0 +1,63 @@
+---
+title: "Development Notes"
+format: gfm
+---
+
+Setup
+
+- Use R ≥ 4.5 and RStudio.
+- Restore environment and install deps:
+
+```r
+renv::restore(prompt = FALSE)
+source("dependencies.R")
+pak::pkg_install(project_dependencies())
+```
+
+Workflow
+
+- Build pipeline:
+
+```r
+targets::tar_make()
+```
+
+- Visualize DAG:
+
+```r
+targets::tar_visnetwork()
+```
+
+- Run tests:
+
+```r
+ testthat::test_dir("tests/testthat", reporter = "summary")
+```
+
+Docs
+
+- Render all docs:
+
+```bash
+quarto render docs/
+```
+
+Windows note (callr)
+
+- Quarto rendering inside `{targets}` can intermittently error on Windows when run in a background `callr` session, even though artefacts are created successfully. This project sets the default to run in the foreground via `_targets.yaml`:
+
+```yaml
+callr: never
+```
+
+- One‑off override in R:
+
+```r
+targets::tar_make(callr = "never")
+```
+
+- Persist as default for the project (writes `_targets.yaml`):
+
+```r
+targets::tar_config_set(callr = "never")
+```

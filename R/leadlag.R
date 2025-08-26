@@ -207,11 +207,10 @@ write_leadlag_maps <- function(leadlag_tbl, metric = "delta_fad_median") {
     pull(species)
 
   slug <- function(s) {
-    s |>
-      gsub("[^A-Za-z0-9]+", "_", x = _) |>
-      gsub("_+", "_", x = _) |>
-      gsub("^_|_$", "", x = _) |>
-      tolower()
+    s <- gsub("[^A-Za-z0-9]+", "_", s)
+    s <- gsub("_+", "_", s)
+    s <- gsub("^_|_$", "", s)
+    tolower(s)
   }
 
   out <- map(species_vec, function(sp) {

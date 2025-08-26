@@ -3,7 +3,7 @@
 plot_overlap_heatmap <- function(overlap_tbl) {
 
   import::from("ggplot2", ggplot, aes, geom_tile, scale_fill_viridis_c,
-               labs, theme_minimal)
+               labs, theme_minimal, theme, element_text)
   import::from("tidyr", pivot_longer)
   import::from("dplyr", mutate)
 

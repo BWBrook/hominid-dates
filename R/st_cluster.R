@@ -15,12 +15,15 @@ st_cluster <- function(occ_tbl, minPts = 5, date_weight = 1, scale_axes = TRUE) 
 
   import::from("dplyr", mutate, arrange, select, relocate, bind_cols)
   import::from("dbscan", hdbscan)
+  import::from("rlang", abort)
+  import::from("cli", cli_warn)
 
   # Ensure required columns exist
   req <- c("id", "lon", "lat", "date")
   missing <- setdiff(req, names(occ_tbl))
   if (length(missing) > 0) {
-    stop(sprintf("st_cluster: missing required columns: %s", paste(missing, collapse = ", ")))
+    abort(sprintf("st_cluster: missing required columns: %s", paste(missing, collapse = ", ")),
+          class = "st_cluster_error")
   }
 
   x <- occ_tbl
@@ -41,23 +44,25 @@ st_cluster <- function(occ_tbl, minPts = 5, date_weight = 1, scale_axes = TRUE) 
 
     fit <- tryCatch(hdbscan(m, minPts = minPts), error = function(e) e)
     if (inherits(fit, "error") || is.null(fit$cluster)) {
-      warning("st_cluster: HDBSCAN failed; assigning NA cluster_id to all rows")
+      cli_warn("st_cluster: HDBSCAN failed; assigning NA cluster_id to all rows")
     } else {
       # Map 0 (noise) -> NA
       cl <- as.integer(fit$cluster)
       cl[cl == 0L] <- NA_integer_
       cluster_id[valid] <- cl
       if (all(is.na(cluster_id[valid]))) {
-        warning("st_cluster: HDBSCAN produced only noise; all cluster_id = NA")
+        cli_warn("st_cluster: HDBSCAN produced only noise; all cluster_id = NA")
       } else if (any(is.na(cluster_id[valid]))) {
-        warning(sprintf(
+        n_unassigned <- sum(is.na(cluster_id[valid]))
+        n_valid <- sum(valid)
+        cli_warn(sprintf(
           "st_cluster: %d/%d points unassigned (noise)",
-          sum(is.na(cluster_id[valid])), sum(valid)
+          n_unassigned, n_valid
         ))
       }
     }
   } else {
-    warning("st_cluster: insufficient valid rows for clustering; all cluster_id = NA")
+    cli_warn("st_cluster: insufficient valid rows for clustering; all cluster_id = NA")
   }
 
   out <- x |>

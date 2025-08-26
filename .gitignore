@@ -40,8 +40,9 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 
-# pkgdown site
-docs/
+# Quarto / pkgdown site artifacts
+docs/_site/
+.quarto/
 
 # translation temp files
 po/*~
@@ -78,3 +79,4 @@ outputs/
 *.js
 *.css
 *.woff
+a*.md

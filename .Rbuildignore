@@ -1,0 +1,8 @@
+^renv$
+^renv\.lock$
+^_targets/\n
+^docs/\n
+^inst/extdata/cache/\n
+^\.github/\n
+^\.lintr$\n
+^\.quarto/\n

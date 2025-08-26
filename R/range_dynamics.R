@@ -20,12 +20,14 @@ range_dynamics <- function(occ_tbl, bin_width = 0.1) {
   import::from("dplyr", filter, mutate, group_by, summarise, ungroup, arrange,
                select, n, lag, if_else, across, rename)
   import::from("tibble", tibble)
+  import::from("rlang", abort)
 
   # Guard: required columns
   req <- c("species", "lat", "lon", "date")
   missing <- setdiff(req, names(occ_tbl))
   if (length(missing) > 0) {
-    stop(sprintf("range_dynamics: missing required columns: %s", paste(missing, collapse = ", ")))
+    abort(sprintf("range_dynamics: missing required columns: %s", paste(missing, collapse = ", ")),
+          class = "range_dynamics_error")
   }
 
   df <- occ_tbl |>
@@ -98,11 +100,13 @@ range_dynamics <- function(occ_tbl, bin_width = 0.1) {
 #' @keywords internal
 validate_range_metrics <- function(x) {
   import::from("dplyr", arrange)
+  import::from("rlang", abort)
   cols <- c("species", "bin", "centroid_lat", "centroid_long", "lat_span",
             "long_span", "hull_area_km2", "velocity_km_per_Ma")
   missing <- setdiff(cols, names(x))
   if (length(missing) > 0) {
-    stop(sprintf("validate_range_metrics: missing columns: %s", paste(missing, collapse = ", ")))
+    abort(sprintf("validate_range_metrics: missing columns: %s", paste(missing, collapse = ", ")),
+          class = "range_metrics_validation_error")
   }
   # enforce ordering: species asc, then bin chronological (older → younger = desc by Ma)
   x <- arrange(x, species, dplyr::desc(bin))
@@ -156,7 +160,7 @@ convex_hull_area_km2 <- function(lat, lon) {
 #' @export
 plot_centroid_track <- function(range_tbl, species) {
   import::from("dplyr", filter, arrange)
-  import::from("ggplot2", ggplot, aes, geom_path, geom_point, labs, theme_minimal)
+  import::from("ggplot2", ggplot, aes, geom_path, geom_point, geom_sf, labs, theme_minimal)
   import::from("rnaturalearth", ne_countries)
   import::from("sf", st_as_sf)
 
@@ -166,9 +170,14 @@ plot_centroid_track <- function(range_tbl, species) {
 
   world <- ne_countries(scale = "medium", continent = "Africa", returnclass = "sf")
 
-  ggplot() +
-    geom_sf(data = world, fill = "grey95", color = "grey70", linewidth = 0.2) +
-    geom_path(data = dat, aes(x = centroid_long, y = centroid_lat), color = "steelblue") +
+  p <- ggplot() +
+    geom_sf(data = world, fill = "grey95", color = "grey70", linewidth = 0.2)
+
+  if (nrow(dat) > 1) {
+    p <- p + geom_path(data = dat, aes(x = centroid_long, y = centroid_lat), color = "steelblue")
+  }
+
+  p +
     geom_point(data = dat, aes(x = centroid_long, y = centroid_lat), size = 2, color = "steelblue") +
     labs(x = "Longitude", y = "Latitude",
          title = paste("Centroid track:", species),
@@ -224,9 +233,8 @@ write_range_metrics_species <- function(range_tbl) {
 #' Slugify species name for filenames
 #' @keywords internal
 slugify_species <- function(s) {
-  s |>
-    gsub("[^A-Za-z0-9]+", "_", x = _) |>
-    gsub("_+", "_", x = _) |>
-    gsub("^_|_$", "", x = _) |>
-    tolower()
+  s <- gsub("[^A-Za-z0-9]+", "_", s)
+  s <- gsub("_+", "_", s)
+  s <- gsub("^_|_$", "", s)
+  tolower(s)
 }
