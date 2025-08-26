@@ -18,7 +18,6 @@ hominid-dates/
 ├── docs/
 │   ├── CHANGELOG.md            # Keep a Changelog
 │   ├── PIPELINE.md             # DAG overview and notes
-│   ├── AGENT_NOTES.md          # edit log
 │   ├── DEVELOPMENT.qmd         # setup + dev notes
 │   └── report.qmd              # Quarto source → docs/report.pdf
 ├── metadata/data_manifest.csv  # input schema documentation
@@ -35,6 +34,8 @@ hominid-dates/
 
 RStudio (recommended):
 
+Open the `hominid-dates.Rproj` file, then in the Console run:
+
 ```r
 renv::restore(prompt = FALSE)
 source("dependencies.R")
@@ -44,8 +45,12 @@ pak::pkg_install(project_dependencies())
 Shell alternative:
 
 ```bash
-R -e "renv::restore(prompt=FALSE); source('dependencies.R'); pak::pkg_install(project_dependencies())"
+R -e 'renv::restore(prompt=FALSE); source("dependencies.R"); pak::pkg_install(project_dependencies())'
 ```
+
+Note: Do NOT run `bootstrap_env.R` for a cloned repo with an existing `renv.lock`.
+That script is for bootstrapping a brand‑new project (no lockfile) and is kept for
+historical/one‑off use only.
 
 ---
 

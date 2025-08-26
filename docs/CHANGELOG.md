@@ -18,6 +18,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `.gitignore` now tracks `docs/` content (ignores `docs/_site/` and `.quarto/`).
 - Error/warning handling uses `rlang::abort()` and `cli::cli_warn()` in key helpers.
 - Default `{targets}` `callr` strategy set to `never` via `_targets.yaml` (stability on Windows during Quarto renders).
+- `bootstrap_env.R` now aborts early if `renv.lock` exists to prevent misuse on cloned repos.
 
 ### Fixed
 - None yet.

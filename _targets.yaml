@@ -1,2 +1,3 @@
-callr: never
-
+projects:
+  default:
+    callr: never
