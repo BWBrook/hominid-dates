@@ -62,7 +62,7 @@ plot_beta_locality <- function(beta_tbl, nmax = 6) {
               color = "grey40", linewidth = 0.4, inherit.aes = FALSE) +
     geom_line(data = dat3, aes(x = step_mid, y = effort_scaled,   group = cluster_id),
               color = "grey70", linewidth = 0.3, inherit.aes = FALSE) +
-    scale_x_reverse(name = "Ma (older → right)") +
+    scale_x_reverse(name = "Ma (older -> right)") +
     scale_y_continuous(name = "Beta components", sec.axis = ggplot2::sec_axis(~ ., name = "Relative richness / effort")) +
     facet_wrap(~ cluster_id, scales = "free_x") +
     theme_minimal() + labs(fill = NULL, title = "Temporal beta diversity components by locality")

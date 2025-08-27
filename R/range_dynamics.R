@@ -181,7 +181,7 @@ plot_centroid_track <- function(range_tbl, species) {
     geom_point(data = dat, aes(x = centroid_long, y = centroid_lat), size = 2, color = "steelblue") +
     labs(x = "Longitude", y = "Latitude",
          title = paste("Centroid track:", species),
-         subtitle = "Lines connect sequential bins (older → younger)") +
+         subtitle = "Lines connect sequential bins (older -> younger)") +
     theme_minimal()
 }
 

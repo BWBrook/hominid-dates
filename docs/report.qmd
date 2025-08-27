@@ -676,7 +676,23 @@ Takeaways:
 
 ---
 
-## 12 Next steps
+## 12 Bin-size sensitivity
+
+We check whether time-sliced results are stable under different bin widths (0.1, 0.25, 0.5 Ma). The first figure shows per-bin series for N (occurrence count), S (species richness), and the z-scored effort proxy (lambda_z). The second summarises pairwise stability: Spearman ρ and RMSD of z-scores after resampling coarser series to the 0.1 Ma grid over overlapping periods.
+
+```{r bin-sense-series, fig.cap="Per-bin metrics across widths (faceted by metric × width)."}
+tar_read(bin_sense_series_plot)
+```
+
+```{r bin-sense-stability, fig.cap="Stability across widths: Spearman ρ and RMSD of z-scores."}
+tar_read(bin_sense_stability_plot)
+```
+
+Takeaway: High ρ and low RMSD indicate robust patterns that are not binning artefacts. Where discrepancies occur, interpret peaks and troughs cautiously and consider reporting width-robust ranges.
+
+---
+
+## 13 Next steps
 
 1. Implement Solow’s **OLE** to estimate continental extinction probabilities.
 2. Fit hierarchical occupancy models at key sites (e.g., Olduvai Gorge) integrating `sampling_intensity`.

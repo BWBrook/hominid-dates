@@ -15,6 +15,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
  - Temporal beta diversity analysis: `build_incidence_by_cluster()`, `beta_turnover_by_cluster()` with plots and targets.
  - Usage vignette `docs/USAGE.qmd` and pipeline target `usage_pdf` (renders to `docs/USAGE.pdf`).
  - Lazarus gaps module: `effort_time_series()`, `lazarus_all()` with CSV export `outputs/lazarus_gaps.csv` and rank plot `outputs/lazarus_rank.png`; report section added.
+ - Bin-size sensitivity audit: `binned_metrics()`, `bin_sensitivity()`; plots `bin_sense_series.png`, `bin_sense_stability.png`; CSV `bin_sense_summary.csv`; report section.
  - Usage vignette `docs/USAGE.qmd` and pipeline target `usage_pdf` (renders to `docs/USAGE.pdf`).
 
 ### Changed
@@ -26,3 +27,4 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Fixed
 - None yet.
+ - Avoid PDF glyph substitution warning by replacing Unicode arrows in plot labels with ASCII '->'.

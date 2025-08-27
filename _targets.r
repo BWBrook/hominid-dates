@@ -405,6 +405,44 @@ list(
     format = "file"
   ),
   # -----------------------------------------------------------------------------
+  # 7b. BIN-SIZE SENSITIVITY (0.1, 0.25, 0.5 Ma)
+  # -----------------------------------------------------------------------------
+  targets::tar_target(
+    bin_sense_results,
+    bin_sensitivity(occ_tbl_no_indet, widths = c(0.1, 0.25, 0.5))
+  ),
+  targets::tar_target(
+    bin_sense_tbl,
+    bin_sense_results$bin_sense_tbl
+  ),
+  targets::tar_target(
+    bin_sense_summary,
+    bin_sense_results$bin_sense_summary
+  ),
+  targets::tar_target(
+    bin_sense_summary_csv,
+    write_output(bin_sense_summary, "bin_sense_summary.csv"),
+    format = "file"
+  ),
+  targets::tar_target(
+    bin_sense_series_plot,
+    plot_bin_series(bin_sense_tbl)
+  ),
+  targets::tar_target(
+    bin_sense_series_file,
+    write_plot(bin_sense_series_plot, "bin_sense_series.png", width = 10, height = 6),
+    format = "file"
+  ),
+  targets::tar_target(
+    bin_sense_stability_plot,
+    plot_bin_stability(bin_sense_summary)
+  ),
+  targets::tar_target(
+    bin_sense_stability_file,
+    write_plot(bin_sense_stability_plot, "bin_sense_stability.png", width = 8, height = 6),
+    format = "file"
+  ),
+  # -----------------------------------------------------------------------------
   # 7. LAZARUS GAPS (within-range absences vs effort)
   # Purpose: quantify improbability of interior species gaps given global effort.
   # -----------------------------------------------------------------------------
@@ -451,7 +489,8 @@ list(
         leadlag_country_csv, leadlag_ranks_csv, leadlag_maps,
         range_metrics_csv, centroid_track_maps,
         beta_turnover_csv, beta_turnover_plot_file,
-        lazarus_csv, lazarus_plot_rank_file
+        lazarus_csv, lazarus_plot_rank_file,
+        bin_sense_summary_csv, bin_sense_series_file, bin_sense_stability_file
       )
       render_report()
     },

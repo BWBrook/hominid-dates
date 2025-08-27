@@ -34,6 +34,12 @@ Key points:
 - Effort series: `effort_ts` (global by default; 0.25 Ma bins)
 - Species gaps vs effort: `lazarus_tbl` → CSV (`lazarus_gaps.csv`) + rank plot (`lazarus_rank.png`)
 
+## Module: Bin-size sensitivity
+
+- Per-bin metrics per width: `bin_sense_tbl` with N (occurrence count), S (richness), and effort proxy (`lambda_z`).
+- Stability vs 0.1 Ma: `bin_sense_summary` with Spearman rho and RMSD of z-scores (coarser series resampled to 0.1 grid).
+- Artefacts: `bin_sense_summary.csv`, `bin_sense_series.png`, `bin_sense_stability.png`.
+
 For a visual DAG, run:
 
 ```r
