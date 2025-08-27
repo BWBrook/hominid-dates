@@ -21,7 +21,7 @@ hominid-dates/
 │   ├── DEVELOPMENT.qmd         # setup + dev notes
 │   └── report.qmd              # Quarto source → docs/report.pdf
 ├── metadata/data_manifest.csv  # input schema documentation
-├── data/hominid.csv            # cleaned input (user‑provided)
+├── data/hominid.csv            # cleaned hominid dates database
 ├── outputs/                    # generated CSVs/PNGs (git‑ignored)
 ├── tests/testthat/             # unit tests (compendium‑style)
 ├── dependencies.R              # project_dependencies() for pak

@@ -63,7 +63,11 @@ key_localities|stem|0c7c8bdd8597b5df|c1504704c2d55eca|ed116baf6670a155|-12659391
 beta_turnover_csv|stem|a4e9c9d2be35ade1|e3056daeb602ef70|87913e8628e85dde|1528679598|C:/git/hominid-dates/outputs/beta_turnover.csv|t20326.4202162385s|s1112b|1112|file|local|vector|||0.19||
 beta_turnover_plot|stem|e385690e73bd039b|81ded1aa90db0e25|b0aa18b186b85ad3|-1230778064||t20326.4312644021s|s208120b|208120|rds|local|vector|||0.47||
 beta_turnover_plot_file|stem|8fdfe71fba30151b|0f0e286b293f1976|3a5bbc85f343b517|321011837|C:/git/hominid-dates/outputs/beta_turnover.png|t20326.4312746393s|s84707b|84707|file|local|vector|||0.82||
-pdf_report|stem|c3bf009fd421a843|f36edc24b261abdb|56f03594cc0ac8c6|2094884290|C:/git/hominid-dates/docs/report.pdf|t20326.431894528s|s2022592b|2022592|file|local|vector|||35.24||
+lazarus_tbl|stem|2775a8670b7a3071|3289c1d48f833c2f|c93596a727e01e77|-769955710||t20327.0717815799s|s6406b|6406|rds|local|vector|||0.64||
+effort_ts|stem|afca0d7cd2e7521d|ab0cd3dfdc53628b|30ab68b99731c4bf|932931006||t20327.0717826153s|s341b|341|rds|local|vector|||0.05||
+lazarus_csv|stem|59f7c7615236d4a5|adcbc9f79b133f68|ad0500630737e192|1507995784|C:/git/hominid-dates/outputs/lazarus_gaps.csv|t20327.0717857458s|s31395b|31395|file|local|vector|||0.22||
+lazarus_rank_plot|stem|3667c516b40bdb71|ab65d3c1f795f8a6|ebfcbae7d4778b2a|-1783613788||t20327.0717922232s|s109444b|109444|rds|local|vector|||0.48||
+lazarus_plot_rank_file|stem|a2f05dfb9a01d7f6|08f2191b7a83d8f6|cdb442279d3bbd13|-676713069|C:/git/hominid-dates/outputs/lazarus_rank.png|t20327.112245985s|s81248b|81248|file|local|vector|||0.41||
 plot_leadlag_choropleth|function|ae7014ddc004adb2
 plot_beta_locality|function|f34bcd8522f742fc
 fad_lad_rankings|function|d16ada3e0fa994f3
@@ -75,6 +79,7 @@ time_bins|function|d5d827550290cdd2
 make_site_id|function|e3a1952ea24fa099
 plot_bin_counts_mc|function|77e7722fd993a185
 plot_reocc_pvals|function|9faed695b346ea04
+effort_time_series|function|d227e211c04e9602
 country_to_continent|function|022c6a7060110973
 collapse_fragments|function|486700b99d969df2
 mc_dates|function|8c08415a345e6c39
@@ -88,11 +93,14 @@ bin_counts_from_draws|function|3eba38b11f409116
 validate_range_metrics|function|30f49847f9e1354c
 overlap_from_draws|function|91f21fec95d6afaa
 haversine_km|function|97dcdc8d0689e3ec
+plot_lazarus_rank|function|1386aad2b9362798
+plot_lazarus_timeline|function|d0fcd8284a18e18c
 plot_temporal_span|function|94928b91911d1823
 plot_genus_freq|function|492b21f528abca29
 plot_species_freq|function|432223098886f054
 st_cluster|function|44e75a8e7f0d0650
 summarise_spans|function|af4fb74f30578fa2
+calibrate_alpha|function|9897be71935226fa
 render_report|function|f3a37224418404d7
 plot_overlap_heatmap|function|ffd62db7ccb56ecb
 calc_overlap|function|e610a01843471547
@@ -111,5 +119,8 @@ write_centroid_maps|function|6a07b5339db683ec
 write_range_metrics_species|function|650c5a4ad5487a5e
 bin_sensitivity|function|4ceb7eab85f09192
 range_dynamics|function|85b117b84160f657
+lazarus_gaps|function|15e4cfb734b67b9b
 plot_overlap_heatmap_mc|function|5933142aa0839128
 estimate_site_lambda|function|7ec8512cce92e9c2
+lazarus_all|function|a17df0bf1d3834e3
+pdf_report|stem|e0d1796fd0820651|0871b18937fa2a15|a324e1a34de91134|2094884290|C:/git/hominid-dates/docs/report.pdf|t20327.1400696822s|s2030116b|2030116|file|local|vector|||30.72||

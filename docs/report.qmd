@@ -35,7 +35,7 @@ tar_read <- function(name, ...) {
 
 ## Overview
 
-This report summarises what the current dataset can tell us about when and where African hominins appear in the record. It is written for paleoarchaeologists who may not use statistical tools day‑to‑day.
+This report summarises what the current dataset can tell us about when and where African hominins appear in the record.
 
 How to read this report:
 
@@ -45,7 +45,7 @@ How to read this report:
 - Takeaways: After each table or figure, we include a short, plain‑language interpretation of what to look for and why it matters.
 
 Full reproducible workflow is available in the project GitHub repository (https://github.com/BWBrook/hominid-dates).
-The emphasis here is on clear visuals and practical interpretation.
+The emphasis here is on clear visuals and practical interpretation. But these notes are preliminary only!
 
 ---
 
@@ -66,10 +66,11 @@ knitr::kable(genus_tbl,
 gf <- tar_read(genus_species_freq)$genus_freq
 top <- head(gf, 3)
 if (nrow(top) >= 3) {
-  cat(sprintf(
+  msg <- sprintf(
     "Interpretation: %s dominates the dataset (%s specimens), followed by %s (%s) and %s (%s). This concentration suggests sampling emphasises these genera.",
     top$genus[1], top$n_specimens[1], top$genus[2], top$n_specimens[2], top$genus[3], top$n_specimens[3]
-  ))
+  )
+  cat(paste(strwrap(msg, width = 90), collapse = "\n"))
 }
 ```
 
@@ -95,8 +96,10 @@ knitr::kable(species_tbl,
 ```{r species-interpret}
 sf <- tar_read(genus_species_freq)$species_freq
 top <- head(sf, 5)
-bul <- apply(top, 1, function(row) sprintf("- %s: %s specimens", row[["species"]], row[["n_specimens"]]))
-cat(paste(bul, collapse = "\n"))
+if (nrow(top) > 0) {
+  bul <- sprintf("- %s: %s specimens", top$species, top$n_specimens)
+  cat(paste(bul, collapse = "\n"))
+}
 ```
 
 What to look for: The table lists species‑level totals. Species with very few specimens may yield noisier results in later analyses; treat their temporal and spatial summaries with extra caution.
@@ -141,11 +144,14 @@ knitr::kable(span_tbl,
 ```{r spans-interpret}
 dur_sorted <- dplyr::arrange(span_tbl, dplyr::desc(duration))
 top <- head(dur_sorted, 3)
-bul <- apply(top, 1, function(r) sprintf(
-  "- %s spans ~%0.2f Ma (%0.2f–%0.2f Ma)",
-  r[["species"]], as.numeric(r[["duration"]]), as.numeric(r[["last_occ"]]), as.numeric(r[["first_occ"]])
-))
-cat(paste("Longest spans (point estimates):", paste(bul, collapse = "\n"), sep = "\n"))
+if (nrow(top) > 0) {
+  bul <- sprintf(
+    "- %s spans ~%0.2f Ma (%0.2f–%0.2f Ma)",
+    top$species, as.numeric(top$duration), as.numeric(top$last_occ), as.numeric(top$first_occ)
+  )
+  msg <- paste("Longest spans (point estimates):", paste(bul, collapse = "\n"), sep = "\n")
+  cat(paste(strwrap(msg, width = 90), collapse = "\n"))
+}
 ```
 
 How to read: Rows with a large difference between first_occ and last_occ indicate species known across a longer interval. Very narrow spans can reflect either real short durations or sparse/uncertain dating.
@@ -178,11 +184,14 @@ knitr::kable(spans_mc_tbl,
 s <- spans_mc_tbl
 s$dur_uncert <- s$dur_hi - s$dur_lo
 top_wide <- dplyr::arrange(s, dplyr::desc(dur_uncert)) |> head(3)
-bul <- apply(top_wide, 1, function(r) sprintf(
-  "- %s: median duration %0.2f Ma (90%% interval %0.2f–%0.2f Ma)",
-  r[["species"]], as.numeric(r[["dur_med"]]), as.numeric(r[["dur_lo"]]), as.numeric(r[["dur_hi"]])
-))
-cat(paste("Widest duration uncertainty (MC):", paste(bul, collapse = "\n"), sep = "\n"))
+if (nrow(top_wide) > 0) {
+  bul <- sprintf(
+    "- %s: median duration %0.2f Ma (90%% interval %0.2f–%0.2f Ma)",
+    top_wide$species, as.numeric(top_wide$dur_med), as.numeric(top_wide$dur_lo), as.numeric(top_wide$dur_hi)
+  )
+  msg <- paste("Widest duration uncertainty (MC):", paste(bul, collapse = "\n"), sep = "\n")
+  cat(paste(strwrap(msg, width = 90), collapse = "\n"))
+}
 ```
 
 What to look for: Compare each species’ median first/last appearances with the 90% interval bounds. Species with wide intervals may shift in or out of overlap with others once uncertainty is considered.
@@ -214,13 +223,13 @@ tar_read(overlap_plot)
 ```{r overlap-interpret}
 ov_wide <- tar_read(overlap_matrix)
 long <- tidyr::pivot_longer(ov_wide, -species_i, names_to = "species_j", values_to = "overlap_Ma")
-long <- dplyr::filter(long, species_i != species_j)
+# keep only one direction per unordered pair (i < j lexicographically)
+long <- dplyr::filter(long, species_i < species_j)
 top <- dplyr::arrange(long, dplyr::desc(overlap_Ma)) |> head(5)
-bul <- apply(top, 1, function(r) sprintf(
-  "- %s with %s: ~%0.2f Ma",
-  r[["species_i"]], r[["species_j"]], as.numeric(r[["overlap_Ma"]])
-))
-cat(paste("Largest point-estimated overlaps:", paste(bul, collapse = "\n"), sep = "\n"))
+if (nrow(top) > 0) {
+  bul <- sprintf("- %s with %s: ~%0.2f Ma", top$species_i, top$species_j, as.numeric(top$overlap_Ma))
+  cat(paste(strwrap(paste("Largest point-estimated overlaps:", paste(bul, collapse = "\n"), sep = "\n"), width = 90), collapse = "\n"))
+}
 ```
 
 Takeaway: Use this grid to spot clusters of species that co‑occur for long periods and pairs that rarely coincide. This helps frame hypotheses about ecological or geographic partitioning versus chronological succession.
@@ -231,13 +240,15 @@ tar_read(overlap_mc_plot)
 
 ```{r overlap-mc-interpret}
 ov_mc <- tar_read(overlap_mc)
-ov_mc2 <- dplyr::filter(ov_mc, species_i != species_j)
+ov_mc2 <- dplyr::filter(ov_mc, species_i < species_j)
 top <- dplyr::arrange(ov_mc2, dplyr::desc(ov_med)) |> head(5)
-bul <- apply(top, 1, function(r) sprintf(
-  "- %s with %s: median ~%0.2f Ma (90%% %0.2f–%0.2f)",
-  r[["species_i"]], r[["species_j"]], as.numeric(r[["ov_med"]]), as.numeric(r[["ov_lo"]]), as.numeric(r[["ov_hi"]])
-))
-cat(paste("Largest overlaps with uncertainty:", paste(bul, collapse = "\n"), sep = "\n"))
+if (nrow(top) > 0) {
+  bul <- sprintf(
+    "- %s with %s: median ~%0.2f Ma (90%% %0.2f–%0.2f)",
+    top$species_i, top$species_j, as.numeric(top$ov_med), as.numeric(top$ov_lo), as.numeric(top$ov_hi)
+  )
+  cat(paste(strwrap(paste("Largest overlaps with uncertainty:", paste(bul, collapse = "\n"), sep = "\n"), width = 90), collapse = "\n"))
+}
 ```
 
 With uncertainty included: Overlap values can shift once dating ranges are respected. Focus on changes relative to the point estimates above—stable, high‑overlap pairs are more robust; volatile, low‑overlap pairs may reflect sparse data.
@@ -262,10 +273,11 @@ knitr::kable(bin_counts_tbl,
 ```{r richness-interpret}
 b <- bin_counts_tbl
 peak <- b[which.max(b$n_med), c("bin_mid", "n_med")]
-cat(sprintf(
+msg <- sprintf(
   "Interpretation: Peak median richness is %.0f species around %0.2f Ma; elevated diversity persists from ~2.35 to ~2.00 Ma (see plot).",
   as.numeric(peak$n_med), as.numeric(peak$bin_mid)
-))
+)
+cat(paste(strwrap(msg, width = 90), collapse = "\n"))
 ```
 
 How to read: For each 0.1 Ma time slice, we estimate how many species are present when accounting for dating uncertainty. The 90% interval reflects uncertainty in both dating and binning.
@@ -302,6 +314,8 @@ range_tbl_disp <- range_tbl |>
     hull_km2 = hull_area_km2,
     vel_km_per_Ma = velocity_km_per_Ma
   )
+# Round velocity to whole km/Ma to avoid false precision
+range_tbl_disp <- dplyr::mutate(range_tbl_disp, vel_km_per_Ma = round(vel_km_per_Ma))
 
 kableExtra::landscape(
   knitr::kable(range_tbl_disp,
@@ -322,13 +336,18 @@ if (all(is.na(range_tbl$hull_area_km2) | range_tbl$hull_area_km2 == 0)) {
 
 ```{r range-interpret}
 rt <- range_tbl
-nonzero <- sum(rt$hull_area_km2 > 0, na.rm = TRUE)
-top_vel <- rt[order(rt$velocity_km_per_Ma, decreasing = TRUE), ][1:min(3, nrow(rt)), c("species","bin","velocity_km_per_Ma")]
-cat(sprintf(
-  "Interpretation: Hull areas > 0 in %d species×bin rows; top centroid shifts (km/Ma) occur at: %s",
-  nonzero,
-  paste(apply(top_vel, 1, function(r) sprintf("%s (bin %0.2f): %0.0f km/Ma", r[["species"]], as.numeric(r[["bin"]]), as.numeric(r[["velocity_km_per_Ma"]]))), collapse = "; ")
-))
+if (nrow(rt) > 0) {
+  nonzero <- sum(rt$hull_area_km2 > 0, na.rm = TRUE)
+  top_vel <- rt[order(rt$velocity_km_per_Ma, decreasing = TRUE), ][1:min(3, nrow(rt)), c("species","bin","velocity_km_per_Ma")]
+  if (nrow(top_vel) > 0) {
+    items <- sprintf("%s (bin %0.2f): %0.0f km/Ma", top_vel$species, as.numeric(top_vel$bin), as.numeric(top_vel$velocity_km_per_Ma))
+    msg <- sprintf(
+      "Interpretation: Hull areas > 0 in %d species×bin rows; top centroid shifts (km/Ma) occur at: %s",
+      nonzero, paste(items, collapse = "; ")
+    )
+    cat(paste(strwrap(msg, width = 90), collapse = "\n"))
+  }
+}
 ```
 
 ```{r centroid-tracks, fig.cap="Centroid tracks (zoomed to occupied extent) for selected species"}
@@ -447,11 +466,20 @@ kableExtra::landscape(
 
 ```{r leadlag-tbl-interpret}
 ll <- leadlag_tbl
-earliest <- dplyr::arrange(ll, delta_fad_median) |> head(3)
-latest   <- dplyr::arrange(ll, dplyr::desc(delta_fad_median)) |> head(3)
-bul1 <- apply(earliest, 1, function(r) sprintf("- Earliest FAD: %s in %s (%0.3f Ma earlier)", r[["species"]], r[["country"]], as.numeric(r[["delta_fad_median"]])) )
-bul2 <- apply(latest,   1, function(r) sprintf("- Latest FAD: %s in %s (+%0.3f Ma)",       r[["species"]], r[["country"]], as.numeric(r[["delta_fad_median"]])) )
-cat(paste(c("Highlights:", bul1, bul2), collapse = "\n"))
+# Choose highlights with a small tolerance to avoid near-zero ties
+tol <- 1e-3
+earliest <- ll |>
+  dplyr::filter(!is.na(delta_fad_median), delta_fad_median < -tol) |>
+  dplyr::arrange(delta_fad_median) |>
+  head(3)
+latest <- ll |>
+  dplyr::filter(!is.na(delta_fad_median), delta_fad_median > tol) |>
+  dplyr::arrange(dplyr::desc(delta_fad_median)) |>
+  head(3)
+bul1 <- if (nrow(earliest) > 0) sprintf("- Earliest FAD: %s in %s (%0.3f Ma earlier)", earliest$species, earliest$country, as.numeric(earliest$delta_fad_median)) else character(0)
+bul2 <- if (nrow(latest)   > 0) sprintf("- Latest FAD: %s in %s (+%0.3f Ma)",       latest$species,   latest$country,   as.numeric(latest$delta_fad_median))   else character(0)
+msg <- paste(c("Highlights:", bul1, bul2), collapse = "\n")
+cat(paste(strwrap(msg, width = 90), collapse = "\n"))
 ```
 
 What to look for: Countries with clearly negative Delta FAD may be early locales for a species; clearly positive values indicate later presence. Wide intervals call for cautious interpretation.
@@ -543,7 +571,14 @@ Selection criteria: clusters with ≥ 3 non‑empty bins and ≥ 3 species acros
 beta_tbl <- tar_read(beta_turnover_tbl)
 
 kableExtra::landscape(
-  knitr::kable(beta_tbl |> head(10),
+  knitr::kable(beta_tbl |>
+                 dplyr::rename(
+                   clust = cluster_id,
+                   b_tot = beta_total,
+                   b_turn = beta_turnover,
+                   b_nest = beta_nestedness
+                 ) |>
+                 head(10),
               caption = "Temporal beta diversity between successive bins at key localities (top 10 rows).",
               digits = 3) |>
     kable_styling(full_width = FALSE) |>
@@ -593,7 +628,55 @@ Takeaways:
 
 ---
 
-## 10 Next steps
+## 11 Lazarus gaps vs effort
+
+We assess within-range absences for each species and ask whether those gaps are unexpectedly long given a time-varying effort proxy λ(t) aggregated across the dataset. For a gap between consecutive occurrences, we integrate λ(t) over the gap and compute the probability of zero detections under a Poisson model, scaled by a species-level α̂ chosen so that expected detections over the species’ range match the observed count.
+
+```{r lazarus-table}
+lz <- tar_read(lazarus_tbl)
+
+disp <- lz |>
+  dplyr::arrange(p_adj) |>
+  dplyr::mutate(p_adj = round(p_adj, 4), p_no_detect = round(p_no_detect, 4)) |>
+  dplyr::rename(
+    start    = gap_start_Ma,
+    end      = gap_end_Ma,
+    gap      = gap_Ma,
+    eff_strat = effort_stratum,
+    l_sum    = lambda_sum,
+    alpha    = alpha_hat,
+    Lambda   = Lambda_gap,
+    p_ndet   = p_no_detect,
+    improb   = flag_improbable,
+    low_pow  = low_power
+  ) |>
+  dplyr::select(species, start, end, gap, eff_strat, l_sum, alpha, Lambda, p_ndet, p_adj, improb) |>
+  head(10)
+
+kableExtra::landscape(
+  knitr::kable(
+    disp,
+    caption = "Lazarus gaps with smallest BH-adjusted probabilities (top 10).",
+    digits = 3
+  ) |>
+  kable_styling(latex_options = c("scale_down")) |>
+  kable_classic()
+)
+```
+
+```{r lazarus-rank, fig.cap="Lazarus gaps ranked by improbability (−log10 BH-adjusted p)."}
+tar_read(lazarus_rank_plot)
+```
+
+Reading the plot: Bars show the most improbable within-range gaps under the effort-adjusted model; stronger bars have smaller adjusted p-values. Use the species timelines and underlying occurrences to inspect whether these reflect genuine hiatuses or sampling artefacts.
+
+Takeaways:
+- Several species exhibit improbable Lazarus gaps when compared to the global effort proxy; these merit stratigraphic review and sensitivity checks.
+- Results depend on the effort series specification and bin width; see the planned sensitivity module.
+
+---
+
+## 12 Next steps
 
 1. Implement Solow’s **OLE** to estimate continental extinction probabilities.
 2. Fit hierarchical occupancy models at key sites (e.g., Olduvai Gorge) integrating `sampling_intensity`.

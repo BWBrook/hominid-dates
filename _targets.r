@@ -405,7 +405,33 @@ list(
     format = "file"
   ),
   # -----------------------------------------------------------------------------
-  # 7. REPORT RENDER
+  # 7. LAZARUS GAPS (within-range absences vs effort)
+  # Purpose: quantify improbability of interior species gaps given global effort.
+  # -----------------------------------------------------------------------------
+  targets::tar_target(
+    effort_ts,
+    effort_time_series(occ_tbl_no_indet, bin_width = 0.25, by = "global")
+  ),
+  targets::tar_target(
+    lazarus_tbl,
+    lazarus_all(occ_tbl_no_indet, bin_width = 0.25, by = "global")
+  ),
+  targets::tar_target(
+    lazarus_csv,
+    write_output(lazarus_tbl, "lazarus_gaps.csv"),
+    format = "file"
+  ),
+  targets::tar_target(
+    lazarus_rank_plot,
+    plot_lazarus_rank(lazarus_tbl)
+  ),
+  targets::tar_target(
+    lazarus_plot_rank_file,
+    write_plot(lazarus_rank_plot, "lazarus_rank.png", width = 7, height = 5),
+    format = "file"
+  ),
+  # -----------------------------------------------------------------------------
+  # 8. REPORT RENDER
   # Purpose: render the Quarto report after its dependencies are available.
   # Note: explicit dependency list ensures {targets} schedules upstream builds.
   # -----------------------------------------------------------------------------
@@ -424,7 +450,8 @@ list(
         likely_reoccupancy_events_csv, reocc_pvals_plot,
         leadlag_country_csv, leadlag_ranks_csv, leadlag_maps,
         range_metrics_csv, centroid_track_maps,
-        beta_turnover_csv, beta_turnover_plot_file
+        beta_turnover_csv, beta_turnover_plot_file,
+        lazarus_csv, lazarus_plot_rank_file
       )
       render_report()
     },

@@ -29,6 +29,11 @@ Key points:
   - `pdf_report` renders the Quarto report to `docs/report.pdf`
   - `usage_pdf` renders the Usage vignette to `docs/USAGE.pdf`
 
+## Module: Lazarus gaps
+
+- Effort series: `effort_ts` (global by default; 0.25 Ma bins)
+- Species gaps vs effort: `lazarus_tbl` → CSV (`lazarus_gaps.csv`) + rank plot (`lazarus_rank.png`)
+
 For a visual DAG, run:
 
 ```r
