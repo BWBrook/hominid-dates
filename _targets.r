@@ -443,6 +443,44 @@ list(
     format = "file"
   ),
   # -----------------------------------------------------------------------------
+  # 7c. IDENTIFIABILITY BIAS (Pr[indet] ~ time + region + effort)
+  # -----------------------------------------------------------------------------
+  targets::tar_target(
+    indet_data,
+    build_indet_frame(occ_tbl, width = 0.25)
+  ),
+  targets::tar_target(
+    indet_glm_fit,
+    fit_indet_glm(indet_data)
+  ),
+  targets::tar_target(
+    indet_effects,
+    predict_indet(indet_data, indet_glm_fit)
+  ),
+  targets::tar_target(
+    indet_effects_csv,
+    write_output(indet_effects, "indet_effects.csv"),
+    format = "file"
+  ),
+  targets::tar_target(
+    indet_time_plot,
+    plot_indet_over_time(indet_effects)
+  ),
+  targets::tar_target(
+    indet_time_plot_file,
+    write_plot(indet_time_plot, "indet_time.png", width = 10, height = 6),
+    format = "file"
+  ),
+  targets::tar_target(
+    indet_effort_plot,
+    plot_indet_vs_effort(indet_data)
+  ),
+  targets::tar_target(
+    indet_effort_plot_file,
+    write_plot(indet_effort_plot, "indet_effort.png", width = 8, height = 6),
+    format = "file"
+  ),
+  # -----------------------------------------------------------------------------
   # 7. LAZARUS GAPS (within-range absences vs effort)
   # Purpose: quantify improbability of interior species gaps given global effort.
   # -----------------------------------------------------------------------------
@@ -490,7 +528,8 @@ list(
         range_metrics_csv, centroid_track_maps,
         beta_turnover_csv, beta_turnover_plot_file,
         lazarus_csv, lazarus_plot_rank_file,
-        bin_sense_summary_csv, bin_sense_series_file, bin_sense_stability_file
+        bin_sense_summary_csv, bin_sense_series_file, bin_sense_stability_file,
+        indet_effects_csv, indet_time_plot_file, indet_effort_plot_file
       )
       render_report()
     },

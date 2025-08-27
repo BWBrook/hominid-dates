@@ -628,7 +628,23 @@ Takeaways:
 
 ---
 
-## 11 Lazarus gaps vs effort
+## 11 Identifiability bias: Pr(indet) over time/region/effort
+
+We model the probability that a specimen is indeterminate (“indet”) as a function of time, region, and effort. Counts are aggregated by 0.25 Ma bins per country (including indets), and a binomial GLM is fit with a natural spline on time and covariates for country and log1p(effort). We plot partial time effects per country at median effort, and a diagnostic of observed Pr(indet) versus effort.
+
+```{r indet-time, fig.cap="Pr(indet) over time by country (median effort; 90% CI)."}
+tar_read(indet_time_plot)
+```
+
+```{r indet-effort, fig.cap="Observed Pr(indet) vs log1p(effort) by country."}
+tar_read(indet_effort_plot)
+```
+
+Interpretation: Increasing Pr(indet) toward older bins may indicate more fragmentary preservation and/or methodological limits; country differences can reflect local taphonomy or research practice. Effort helps separate identification bias from sparse sampling, but residual confounding is possible; interpret cautiously.
+
+---
+
+## 12 Lazarus gaps vs effort
 
 We assess within-range absences for each species and ask whether those gaps are unexpectedly long given a time-varying effort proxy λ(t) aggregated across the dataset. For a gap between consecutive occurrences, we integrate λ(t) over the gap and compute the probability of zero detections under a Poisson model, scaled by a species-level α̂ chosen so that expected detections over the species’ range match the observed count.
 
@@ -676,7 +692,7 @@ Takeaways:
 
 ---
 
-## 12 Bin-size sensitivity
+## 13 Bin-size sensitivity
 
 We check whether time-sliced results are stable under different bin widths (0.1, 0.25, 0.5 Ma). The first figure shows per-bin series for N (occurrence count), S (species richness), and the z-scored effort proxy (lambda_z). The second summarises pairwise stability: Spearman ρ and RMSD of z-scores after resampling coarser series to the 0.1 Ma grid over overlapping periods.
 
@@ -692,7 +708,7 @@ Takeaway: High ρ and low RMSD indicate robust patterns that are not binning art
 
 ---
 
-## 13 Next steps
+## 14 Next steps
 
 1. Implement Solow’s **OLE** to estimate continental extinction probabilities.
 2. Fit hierarchical occupancy models at key sites (e.g., Olduvai Gorge) integrating `sampling_intensity`.
