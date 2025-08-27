@@ -481,6 +481,49 @@ list(
     format = "file"
   ),
   # -----------------------------------------------------------------------------
+  # 7d. OUTLIER AUDIT (time × taxon × space)
+  # -----------------------------------------------------------------------------
+  targets::tar_target(
+    outlier_tbl,
+    {
+      # join cluster_id if available for singleton notes
+      occ_joined <- occ_tbl_no_indet
+      if ("cluster_id" %in% names(st_clusters)) {
+        occ_joined <- dplyr::left_join(occ_tbl_no_indet, st_clusters[, c("id","cluster_id")], by = "id")
+      }
+      outliers_all(occ_joined, spans_mc, delta = 0.05)
+    }
+  ),
+  targets::tar_target(
+    outlier_csv,
+    write_output(outlier_tbl, "outliers.csv"),
+    format = "file"
+  ),
+  targets::tar_target(
+    outlier_map,
+    plot_outlier_map(outlier_tbl, occ_tbl_no_indet)
+  ),
+  targets::tar_target(
+    outlier_map_file,
+    write_plot(outlier_map, "outlier_map.png", width = 10, height = 6),
+    format = "file"
+  ),
+  # -----------------------------------------------------------------------------
+  # 7e. NEXT STEPS (stubs for wiring only; not used elsewhere)
+  # -----------------------------------------------------------------------------
+  targets::tar_target(
+    ole_extinction_stub,
+    ole_extinction_stub()
+  ),
+  targets::tar_target(
+    site_occupancy_stub,
+    site_occupancy_stub()
+  ),
+  targets::tar_target(
+    animated_maps_stub,
+    animated_maps_stub()
+  ),
+  # -----------------------------------------------------------------------------
   # 7. LAZARUS GAPS (within-range absences vs effort)
   # Purpose: quantify improbability of interior species gaps given global effort.
   # -----------------------------------------------------------------------------
@@ -529,7 +572,8 @@ list(
         beta_turnover_csv, beta_turnover_plot_file,
         lazarus_csv, lazarus_plot_rank_file,
         bin_sense_summary_csv, bin_sense_series_file, bin_sense_stability_file,
-        indet_effects_csv, indet_time_plot_file, indet_effort_plot_file
+        indet_effects_csv, indet_time_plot_file, indet_effort_plot_file,
+        outlier_csv, outlier_map_file
       )
       render_report()
     },

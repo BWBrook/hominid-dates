@@ -76,6 +76,8 @@ Selected targets (high‑level):
 - beta_turnover_tbl → beta_turnover_plot_file (temporal β diversity at key localities)
 - lazarus_tbl → lazarus_plot_rank_file (within‑range gaps vs effort)
 - bin_sense_results → bin_sense_series_file + bin_sense_stability_file (width stability)
+- indet_data → indet_time_plot_file + indet_effort_plot_file (Pr[indet] vs time/effort)
+- outlier_tbl → outlier_map_file (temporal/spatial outlier audit)
 - pdf_report (docs/report.pdf)
 
 Validate:
@@ -128,12 +130,14 @@ Generated under `outputs/` by file targets (examples):
   `reocc_pvals.csv`, `likely_reoccupancy_events.csv`, `range_metrics.csv`,
   `range_metrics_<species>.csv` (per‑species), `beta_turnover.csv`,
   `leadlag_country.csv`, `leadlag_ranks.csv`,
-  `lazarus_gaps.csv`, `bin_sense_summary.csv`.
+  `lazarus_gaps.csv`, `bin_sense_summary.csv`, `indet_effects.csv`,
+  `outliers.csv`.
 - Plots: `genus_freq.png`, `species_freq.png`, `temporal_span.png`,
   `temporal_span_mc.png`, `overlap_heatmap.png`, `overlap_heatmap_mc.png`,
   `bin_counts_mc.png`, `mixing_index_by_cluster.png`, `beta_turnover.png`,
   `centroid_track_<species>.png`, `leadlag_delta_fad_<species>.png`,
-  `lazarus_rank.png`, `bin_sense_series.png`, `bin_sense_stability.png`.
+  `lazarus_rank.png`, `bin_sense_series.png`, `bin_sense_stability.png`,
+  `indet_time.png`, `indet_effort.png`, `outlier_map.png`.
 - Report: `docs/report.pdf`.
 
 All file targets declare `format = "file"` to ensure correct change tracking.

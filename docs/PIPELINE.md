@@ -46,3 +46,20 @@ For a visual DAG, run:
 # In RStudio Console
 targets::tar_visnetwork()
 ```
+
+## Module: Identifiability bias
+
+- Per-bin binomial GLM data: `indet_data` (bin × country counts and effort)
+- Fit + effects: `indet_glm_fit` (model), `indet_effects` (per-country time path, 90% CI)
+- Artefacts: `indet_effects.csv`, `indet_time.png`, `indet_effort.png`.
+
+## Module: Outlier audit
+
+- Outlier table: `outlier_tbl` (temporal FAD/LAD tails and spatial MAD flags, with cluster notes)
+- Artefacts: `outliers.csv`, `outlier_map.png`.
+
+## Next Steps (stubs)
+
+- `ole_extinction_stub` — placeholder for Solow OLE per species (returns tibble)
+- `site_occupancy_stub` — placeholder for site-level occupancy models (returns tibble)
+- `animated_maps_stub` — placeholder plot object for animated maps

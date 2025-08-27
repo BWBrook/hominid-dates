@@ -17,6 +17,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
  - Lazarus gaps module: `effort_time_series()`, `lazarus_all()` with CSV export `outputs/lazarus_gaps.csv` and rank plot `outputs/lazarus_rank.png`; report section added.
  - Bin-size sensitivity audit: `binned_metrics()`, `bin_sensitivity()`; plots `bin_sense_series.png`, `bin_sense_stability.png`; CSV `bin_sense_summary.csv`; report section.
  - Identifiability bias module: `build_indet_frame()`, `fit_indet_glm()`, `predict_indet()`; effects CSV `indet_effects.csv`; plots `indet_time.png`, `indet_effort.png`; report section.
+ - Outlier audit: `haversine_km()`, `temporal_outliers()`, `spatial_outliers()`, `outliers_all()`; artefacts `outliers.csv`, `outlier_map.png`; report appendix.
  - Usage vignette `docs/USAGE.qmd` and pipeline target `usage_pdf` (renders to `docs/USAGE.pdf`).
 
 ### Changed

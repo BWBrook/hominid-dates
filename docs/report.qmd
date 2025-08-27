@@ -708,7 +708,60 @@ Takeaway: High ρ and low RMSD indicate robust patterns that are not binning art
 
 ---
 
-## 14 Next steps
+## Appendix: Outlier audit (time × taxon × space)
+
+We flag occurrences that are temporal or spatial outliers relative to species distributions and MC envelopes. Temporal tails are defined per species using the 90% envelope of FAD/LAD from MC draws; an observation is a FAD-extension if it is older than q95(FAD) by ≥ 0.05 Ma, and a LAD-extension if younger than q05(LAD) by ≥ 0.05 Ma. Spatial outliers are defined via robust distances from the species’ median location (threshold = median + 3·MAD); cluster singletons are annotated where species×cluster has n = 1.
+
+```{=latex}
+\begin{landscape}
+```
+
+```{r outlier-map, fig.cap="Outlier audit: spatial view — illustrative species with most outliers (colored by type)."}
+out <- tar_read(outlier_tbl)
+occ <- tar_read(occ_tbl_no_indet)
+top_sp <- out |>
+  dplyr::count(species, sort = TRUE) |>
+  dplyr::slice(1) |>
+  dplyr::pull(species)
+
+dat_all <- dplyr::filter(occ, species == top_sp)
+dat_out <- dplyr::filter(out, species == top_sp)
+
+import::from("ggplot2", ggplot, aes, geom_point, facet_wrap, scale_color_brewer, labs, theme_minimal)
+
+ggplot() +
+  geom_point(data = dat_all, aes(x = lon, y = lat), color = "grey80", alpha = 0.5, size = 0.8) +
+  {
+    if (nrow(dat_out) > 0) geom_point(data = dat_out, aes(x = lon, y = lat, color = type), size = 1.8)
+    else NULL
+  } +
+  labs(x = "Longitude", y = "Latitude", color = "Outlier type",
+       title = paste0("Outlier audit: ", top_sp)) +
+  theme_minimal() +
+  scale_color_brewer(palette = "Set1")
+```
+
+```{=latex}
+\end{landscape}
+```
+
+Selected rows:
+
+```{r outlier-table}
+knitr::kable(
+  dplyr::arrange(tar_read(outlier_tbl), species, dplyr::desc(delta)) |>
+    dplyr::select(species, id, date, lat, lon, type, delta, cluster_id, note) |>
+    head(20),
+  caption = "Outlier audit: sample rows (top 20 by delta).",
+  digits = 3
+) |>
+  kableExtra::kable_styling(full_width = FALSE) |>
+  kableExtra::kable_classic()
+```
+
+---
+
+## 15 Next steps
 
 1. Implement Solow’s **OLE** to estimate continental extinction probabilities.
 2. Fit hierarchical occupancy models at key sites (e.g., Olduvai Gorge) integrating `sampling_intensity`.

@@ -97,9 +97,49 @@ The Quarto report source is at `docs/report.qmd`. To render all docs:
 quarto render docs/
 ```
 
+## Additional analyses
+
+Bin-size sensitivity:
+
+```r
+# Stability summary (Spearman rho, RMSD of z-scores)
+tar_read(bin_sense_summary)
+
+# Plots (faceted series and stability bars)
+tar_read(bin_sense_series_plot)
+tar_read(bin_sense_stability_plot)
+```
+
+Identifiability bias (Pr[indet]):
+
+```r
+# Per-country time effects at median effort (90% CI)
+head(tar_read(indet_effects))
+
+# Plots
+tar_read(indet_time_plot)
+tar_read(indet_effort_plot)
+```
+
+Lazarus gaps (within-range absences vs effort):
+
+```r
+head(tar_read(lazarus_tbl)[, c("species","gap_start_Ma","gap_end_Ma","gap_Ma","p_adj","flag_improbable")])
+tar_read(lazarus_rank_plot)
+```
+
+Outlier audit (temporal/spatial):
+
+```r
+# Top rows by magnitude
+head(dplyr::arrange(tar_read(outlier_tbl), dplyr::desc(delta)))
+
+# Illustrative map (species with most outliers)
+tar_read(outlier_map)
+```
+
 ## Troubleshooting
 
 - Validate pipeline: `targets::tar_validate()`.
 - Run tests: `testthat::test_dir("tests/testthat", reporter = "summary")`.
 - Re-run a specific target: `targets::tar_make(names = "genus_species_freq")`.
-
